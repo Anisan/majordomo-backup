@@ -114,11 +114,23 @@ function admin(&$out) {
     $this->getConfig();
     $out['PROVIDER'] = $this->config['PROVIDER']; 
     $out['LOCAL_PATH'] = $this->config['LOCAL_PATH'];
+    $out['WEBDAV_PATH'] = $this->config['WEBDAV_PATH'];
+    $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
+    $out['WEBDAV_LOGIN'] = $this->config['WEBDAV_LOGIN'];
+    $out['WEBDAV_PASSWORD'] = $this->config['WEBDAV_PASSWORD'];
     if ($this->view_mode=='update_settings') {
         global $provider;
         $this->config['PROVIDER'] = $provider;
         global $local_path;
         $this->config['LOCAL_PATH'] = $local_path; 
+        global $webdav_path;
+        $this->config['WEBDAV_PATH'] = $webdav_path; 
+        global $webdav_url;
+        $this->config['WEBDAV_URL'] = $webdav_url; 
+        global $webdav_login;
+        $this->config['WEBDAV_LOGIN'] = $webdav_login; 
+        global $webdav_password;
+        $this->config['WEBDAV_PASSWORD'] = $webdav_password; 
         $this->saveConfig();
         $this->redirect("?");
     }
@@ -141,11 +153,15 @@ function admin(&$out) {
 function get_backups(&$out) {
     $provider = $this->getProvider();
     $backups = $provider->getList();
-    print_r($backups);
-    //paging($backups, 100, $out); // search result paging
-    $out["RESULT"] = $backups;
+    //print_r($backups);
+    foreach($backups as $backup) {
+        $backup['SIZE'] = number_format(($backup['SIZE'] / 1024 / 1024), 2);
+        //paging($backup, 20, $out); // search result paging
+        $out["RESULT"][] = $backup;
+    }
+    
 }
-
+ 
 function delete_backup($name) {
   $provider = $this->getProvider();
   $provider->deleteBackup($name);  
@@ -196,7 +212,7 @@ function create_backup() {
         $this->removeTree(ROOT . 'backup/temp');
     }
     
-    $backupName .= "backup_" . date("Y-m-d H:i:s");
+    $backupName .= "backup_" . date("YmdHis");
     $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
     $file = ROOT . 'backup/'. $file;
     $provider->addBackup($file,$backupName);
@@ -372,7 +388,11 @@ function getProvider() {
                 require_once("./modules/backup/provider/local.php");
                 $provider = new LocalBackup($this->config['LOCAL_PATH']);
                 break;
-            case 1: // GDrive
+            case 1: // WebDav
+                require_once("./modules/backup/provider/webdav.php");
+                $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH']);
+                break;
+            case 2: // GDrive
                 require_once("./modules/backup/provider/gdrive.php");
                 $provider = new GdriveBackup();
                 break;

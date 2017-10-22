@@ -21,6 +21,7 @@ class LocalBackup implements IProvider
                 $file["NAME"] = basename($filename);
                 $file["CREATED"] = date("d/m/Y H:i:s", filemtime($filename));
                 $file["SIZE"] = filesize($filename);
+                //$file["URL"] = $filename;
                 $files[] = $file;
             }
             return $files;

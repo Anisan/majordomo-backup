@@ -2,8 +2,6 @@
 	<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#about">About&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign icon-white"></span>
 	</button>
 </div>
-<br>
-Backup<br>
 <div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="about1" aria-hidden="true">
 <!-- <div id="about" class="modal hide"> -->
 	<div class="modal-dialog">
@@ -55,119 +53,161 @@ Backup<br>
 
 <form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
 <script type="text/javascript">
-	function OnSelectConType (select) {    
+	function OnSelectType (select) {    
 	    var fDiv0 = document.getElementById('set_local');
-		var fDiv1 = document.getElementById('set_gdrive');
+		var fDiv1 = document.getElementById('set_webdav');
+		var fDiv2 = document.getElementById('set_gdrive');
 		fDiv0.style.display = (select.value == 0) ? 'block' : 'none';
 		fDiv1.style.display = (select.value == 1) ? 'block' : 'none';
+		fDiv2.style.display = (select.value == 2) ? 'block' : 'none';
 	}
 </script> 
-<fieldset>
-	<div class="form-group">
-		<label class="control-label col-lg-4">Provider: </label>
-		<div class="col-lg-7">
-			<select name="provider" class="form-control" id="provider" onchange="OnSelectConType(this)">
-				<option value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
-				<option value="1"[#if PROVIDER=="1"#] selected[#endif#]>Google Drive</option>
-			</select>
-		</div>
-	</div>
-	<div id="set_local">
+
+<ul id="tab" class="nav nav-tabs">
+	<li><a data-toggle="tab" href="#panel_backups">Backups</a></li>
+	<li><a data-toggle="tab" href="#panel_settings">Settings</a></li>
+</ul>
+
+<div class="tab-content">
+	<div id="panel_settings" class="tab-pane fade in">
+	<br>
+	<fieldset>
 		<div class="form-group">
-			<label class="control-label">Local path:</label>
-			<div class="col-lg-7"><input type="text" name="local_path" value="<#LOCAL_PATH#>" class="form-control"></div>
+			<label class="control-label col-lg-4">Provider: </label>
+			<div class="col-lg-7">
+				<select name="provider" class="form-control" id="provider" onchange="OnSelectType(this)">
+					<option value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
+					<option value="1"[#if PROVIDER=="1"#] selected[#endif#]>WebDav</option>
+					<option value="2"[#if PROVIDER=="2"#] selected[#endif#]>Google Drive</option>
+				</select>
+			</div>
 		</div>
-	</div>
-	<div id="set_gdrive">
+		<div id="set_local">
+			<div class="form-group">
+				<label class="control-label">Local path:</label>
+				<div class="col-lg-7"><input type="text" name="local_path" value="<#LOCAL_PATH#>" class="form-control"></div>
+			</div>
+		</div>
+		<div id="set_webdav">
+			<div class="form-group">
+				<label class="control-label">Path:</label>
+				<div class="col-lg-7"><input type="text" name="webdav_path" value="<#WEBDAV_PATH#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Url WebDav:</label>
+				<div class="col-lg-7"><input type="text" name="webdav_url" value="<#WEBDAV_URL#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Login WebDav:</label>
+				<div class="col-lg-7"><input type="text" name="webdav_login" value="<#WEBDAV_LOGIN#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Password WebDav:</label>
+				<div class="col-lg-7"><input type="text" name="webdav_password" value="<#WEBDAV_PASSWORD#>" class="form-control"></div>
+			</div>
+		</div>
+		<div id="set_gdrive">
+			<div class="form-group">
+				<label class="control-label">Coming soon...</label>
+			</div>
+		</div>
+		<script type="text/javascript">  
+			OnSelectConType ( document.getElementById('provider') );
+		</script> 
 		<div class="form-group">
-			<label class="control-label">Coming soon...</label>
+		 <label class="control-label">Debug:</label>
+		 <div class="controls"><input type="checkbox" name="post_debug" value="1"[#if POST_DEBUG="1"#] checked[#endif#]></div>
 		</div>
+		<div class="form-actions">
+		<button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
+		<input type="hidden" name="view_mode" value="update_settings">
+		<input type="hidden" name="mode" value="update">
+		</div>
+	</fieldset>
 	</div>
+	<div id="panel_backups" class="tab-pane fade in">
+		<br>
+		<p>
+		<a href="?view_mode=create_backup" class="btn btn-default">Create Backup</a>
+		</p> 
+		<table width=100% border=0><tr>
+		<td valign=top>
+		<!-- results -->
+		[#if RESULT#]
+		<!-- paging -->
+		[#if PAGES#]
+		<table border=0>
+		<td align=right><b>Pages:</b>&nbsp;</td>
+		[#begin PREVPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&lt;&lt;&lt;</a></td>[#end PREVPAGE#]
+		<td>
+		[#begin PAGES#]
+		[#if !SELECTED#]<a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">[#else#]<b>[#endif#][#NUM#]</b></a>
+		[#end PAGES#]
+		</td>
+		[#begin NEXTPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&gt;&gt;&gt;</a></td>[#end NEXTPAGE#]
+		</table>
+		[#endif PAGES#]
+		<!-- / paging -->
+		<!-- search results (list) -->
+		<form action="?" method="post" name="frmList_backup_instances" style="padding:0px" class="form">
+		<table  align=center class="table table-striped">
+		<tbody>
+		[#begin RESULT#]
+		<tr style="height:52px" class="hover_btn2">
+		 <td style="vertical-align:middle">
+		  <b>[#NAME#]</a></b>
+		 </td>
+		 <td style="vertical-align:middle">
+		   [#CREATED#]
+		 </td>
+		 <td style="vertical-align:middle">
+		   [#SIZE#] Mb
+		 </td>
+		[#if URL!=""#]
+			<td valign="top"><a href="[#URL#]" class="btn btn-default">Download</a></td> 
+		[#else#]
+			<td colspan="1">&nbsp;</td>
+		[#endif#] 
+		 <td style="vertical-align:middle" width="1%" nowrap>
+		  <div style="width:120px">
+		  [#if "<#ACTION#>"=="admin"#]
+			<a href="?view_mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="Delete"><i class="glyphicon glyphicon-remove"></i></a>
+		  [#endif ACTION#]
+		  </div>
+		 </td>
+		</tr>
+		[#end RESULT#]
+		</tbody>
+		</table>
+		<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+		<input type="hidden" name="view_mode" value="multiple_backup_instances">
+		</form>
+		<!-- / search results (list) -->
+		<!-- paging -->
+		[#if PAGES#]
+		<table border=0>
+		<td align=right><b>Pages:</b>&nbsp;</td>
+		[#begin PREVPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&lt;&lt;&lt;</a></td>[#end PREVPAGE#]
+		<td>
+		[#begin PAGES#]
+		[#if !SELECTED#]<a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">[#else#]<b>[#endif#][#NUM#]</b></a>
+		[#end PAGES#]
+		</td>
+		[#begin NEXTPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&gt;&gt;&gt;</a></td>[#end NEXTPAGE#]
+		</table>
+		[#endif PAGES#]
+		<!-- / paging -->
+		[#else RESULT#]
+		<p>
+		<font color="red"><#LANG_NO_RECORDS_FOUND#></font>
+		</p>
+		[#endif RESULT#]
+		<!-- / results -->
+		</td></tr></table> 
 	</div>
-<script type="text/javascript">  
-	OnSelectConType ( document.getElementById('provider') );
-</script> 
-<div class="form-group">
- <label class="control-label">Debug:</label>
- <div class="controls"><input type="checkbox" name="post_debug" value="1"[#if POST_DEBUG="1"#] checked[#endif#]></div>
 </div>
-<div class="form-actions">
-<button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
-<input type="hidden" name="view_mode" value="update_settings">
-<input type="hidden" name="mode" value="update">
-</div>
-</fieldset>
 </form>
-<br>
-<p>
-<a href="?view_mode=create_backup" class="btn btn-default">Create Backup</a>
-</p> 
-<table width=100% border=0><tr>
-<td valign=top>
-<!-- results -->
-[#if RESULT#]
-<!-- paging -->
-[#if PAGES#]
-<table border=0>
-<td align=right><b>Pages:</b>&nbsp;</td>
-[#begin PREVPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&lt;&lt;&lt;</a></td>[#end PREVPAGE#]
-<td>
-[#begin PAGES#]
-[#if !SELECTED#]<a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">[#else#]<b>[#endif#][#NUM#]</b></a>
-[#end PAGES#]
-</td>
-[#begin NEXTPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&gt;&gt;&gt;</a></td>[#end NEXTPAGE#]
-</table>
-[#endif PAGES#]
-<!-- / paging -->
-<!-- search results (list) -->
-<form action="?" method="post" name="frmList_backup_instances" style="padding:0px" class="form">
-<table  align=center class="table table-striped">
-<tbody>
-[#begin RESULT#]
-<tr style="height:52px" class="hover_btn2">
- <td style="vertical-align:middle">
-  <b>[#NAME#]</a></b>
- </td>
- <td style="vertical-align:middle">
-   [#CREATED#]
- </td>
- <td style="vertical-align:middle">
-   [#SIZE#]
- </td>
- <td style="vertical-align:middle" width="1%" nowrap>
-  <div style="width:120px">
-  [#if "<#ACTION#>"=="admin"#]
-    <a href="?view_mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="Delete"><i class="glyphicon glyphicon-remove"></i></a>
-  [#endif ACTION#]
-  </div>
- </td>
-</tr>
-[#end RESULT#]
-</tbody>
-</table>
-<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
-<input type="hidden" name="view_mode" value="multiple_backup_instances">
-</form>
-<!-- / search results (list) -->
-<!-- paging -->
-[#if PAGES#]
-<table border=0>
-<td align=right><b>Pages:</b>&nbsp;</td>
-[#begin PREVPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&lt;&lt;&lt;</a></td>[#end PREVPAGE#]
-<td>
-[#begin PAGES#]
-[#if !SELECTED#]<a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">[#else#]<b>[#endif#][#NUM#]</b></a>
-[#end PAGES#]
-</td>
-[#begin NEXTPAGE#]<td><a href="?view_mode=<#VIEW_MODE#>&mode=<#MODE#>&save_qry=1&page=[#NUM#]">&gt;&gt;&gt;</a></td>[#end NEXTPAGE#]
-</table>
-[#endif PAGES#]
-<!-- / paging -->
-[#else RESULT#]
-<p>
-<font color="red"><#LANG_NO_RECORDS_FOUND#></font>
-</p>
-[#endif RESULT#]
-<!-- / results -->
-</td></tr></table> 
+<script type="text/javascript">
+$('#tab a:first').tab('show');
+OnSelectType ( document.getElementById('provider') );
+</script>
