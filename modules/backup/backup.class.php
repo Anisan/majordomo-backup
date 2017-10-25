@@ -154,12 +154,14 @@ function get_backups(&$out) {
     $provider = $this->getProvider();
     $backups = $provider->getList();
     //print_r($backups);
-    foreach($backups as $backup) {
-        $backup['SIZE'] = number_format(($backup['SIZE'] / 1024 / 1024), 2);
-        //paging($backup, 20, $out); // search result paging
-        $out["RESULT"][] = $backup;
+    if ($backups)
+    {
+        foreach($backups as $backup) {
+            $backup['SIZE'] = number_format(($backup['SIZE'] / 1024 / 1024), 2);
+            //paging($backup, 20, $out); // search result paging
+            $out["RESULT"][] = $backup;
+        }
     }
-    
 }
  
 function delete_backup($name) {
