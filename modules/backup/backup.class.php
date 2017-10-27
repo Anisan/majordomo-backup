@@ -118,6 +118,9 @@ function admin(&$out) {
     $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
     $out['WEBDAV_LOGIN'] = $this->config['WEBDAV_LOGIN'];
     $out['WEBDAV_PASSWORD'] = $this->config['WEBDAV_PASSWORD'];
+    $out['MAX_COUNT'] = $this->config['MAX_COUNT'];
+    if ($out['MAX_COUNT'] == "")
+        $out['MAX_COUNT'] = 10;
     if ($this->view_mode=='update_settings') {
         global $provider;
         $this->config['PROVIDER'] = $provider;
@@ -131,6 +134,8 @@ function admin(&$out) {
         $this->config['WEBDAV_LOGIN'] = $webdav_login; 
         global $webdav_password;
         $this->config['WEBDAV_PASSWORD'] = $webdav_password; 
+        global $max_count;
+        $this->config['MAX_COUNT'] = $max_count; 
         $this->saveConfig();
         $this->redirect("?");
     }
@@ -219,6 +224,25 @@ function create_backup() {
     $file = ROOT . 'backup/'. $file;
     $provider->addBackup($file,$backupName);
     unlink($file);
+    
+    
+    $backups = $provider->getList();
+    if ($backups)
+    {
+        if (count($backups) > $this->config['MAX_COUNT'])
+        {
+            usort($backups, function($a1, $a2) {
+                $v1 = strtotime($a1['CREATED']);
+                $v2 = strtotime($a2['CREATED']);
+                return $v1 - $v2; // $v2 - $v1 to reverse direction
+            });
+            $need_delete = count($backups) - $this->config['MAX_COUNT'];
+            for ($i = 0; $i < $need_delete; $i++) {
+                $provider->deleteBackup($backups[$i]['NAME']);
+            }
+        }
+    }
+    
 }
 
 
