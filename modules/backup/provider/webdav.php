@@ -3,6 +3,7 @@ require_once("IProvider.php");
 
 class WebDavBackup implements IProvider
 {
+    public $error;
     
     function __construct($url, $login, $password, $path)
     {
@@ -22,6 +23,11 @@ class WebDavBackup implements IProvider
     {
         $result = $this->client->getSize();
         $result = $result->getResponseArray();
+        if ($result->code != 200)
+        {
+            $this->error = $result->response;
+            return;
+        }
         //echo print_r($result);
         if ($result) { 
             if (!isset($result["propstat"]["prop"]["quota-available-bytes"])) return -1;
@@ -34,6 +40,11 @@ class WebDavBackup implements IProvider
     public function getList()
     {
         $result = $this->client->propfind($this->path);
+        if ($result->code != 200 && $result->code != 207)
+        {
+            $this->error = $result->code. " - " .$result->response;
+            return;
+        }
         $result = $result->getResponseArray();
         //echo print_r($result);
         if ($result) { 
@@ -63,6 +74,11 @@ class WebDavBackup implements IProvider
     public function addBackup($file, $backup)
     {
         $result = $this->client->put($this->path."/".$backup,$file);
+        if ($result->code != 200)
+        {
+            $this->error = $result->response;
+            return;
+        }
         $result = $result->getResponseArray();
         //echo print_r($result);
     }
@@ -71,6 +87,11 @@ class WebDavBackup implements IProvider
     {
         $filename = $this->path ."/". $backup;
         $result = $this->client->delete($filename);
+        if ($result->code != 200)
+        {
+            $this->error = $result->response;
+            return;
+        }
         $result = $result->getResponseArray();
         //echo print_r($result);
     }

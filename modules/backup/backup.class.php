@@ -196,6 +196,7 @@ function get_backups(&$out) {
             $out["RESULT"][] = $backup;
         }
     }
+    $out["ERR_MSG"] = $provider->error;
 }
  
 function delete_backup($name) {
@@ -212,7 +213,7 @@ function create_backup(&$out, $iframe = 0) {
     
     if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
-    $backup_dir = ROOT . 'backup_temp/';
+    $backup_dir = ROOT . 'backup_temp'. DIRECTORY_SEPARATOR;
     
     if ($iframe) $this->echonow("Create temp directory $backup_dir ... ");
         
@@ -238,10 +239,10 @@ function create_backup(&$out, $iframe = 0) {
         
         if ($iframe) $this->echonow("Packing $file ... ");
         if (IsWindowsOS()) {
-            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ./backup/' . $file . ' ./');
+            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ./' . $file . ' ./');
             $new_name = str_replace('.tar', '.tar.gz', $file);
-            $result = exec('gzip.exe ./backup/' . $file);
-            if (file_exists('./backup/' . $new_name)) {
+            $result = exec('gzip.exe ./' . $file);
+            if (file_exists($new_name)) {
                 $file = $new_name;
             }
         } else {
@@ -249,7 +250,14 @@ function create_backup(&$out, $iframe = 0) {
             exec('tar cvzf ../' . $file . ' .');
             chdir('../../');
         }
-        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        if (file_exists(ROOT . $file)) {
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+        }
+        else
+        {
+            if ($iframe) $this->echonow(" Error<br/>", 'red');
+            return;
+        }
         
         if ($iframe) $this->echonow("Remove temp directory $backup_dir ... ");
         $this->removeTree($backup_dir);
@@ -259,7 +267,7 @@ function create_backup(&$out, $iframe = 0) {
         if ($iframe) $this->echonow("Save to storage ... ");
         $backupName .= "backup_" . date("YmdHis");
         $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-        $file = ROOT . '/'. $file;
+        $file = ROOT . DIRECTORY_SEPARATOR . $file;
         $provider->addBackup($file,$backupName);
         unlink($file);
         if ($iframe) $this->echonow(" OK<br/>", 'green');

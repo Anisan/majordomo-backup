@@ -3,6 +3,7 @@ require_once("IProvider.php");
 
 class LocalBackup implements IProvider
 {
+    public $error;
     
     function __construct($path)
     {

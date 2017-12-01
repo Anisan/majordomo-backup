@@ -4,11 +4,15 @@
 </div>
 
 [#if ERR_MSG!=""#]
-<div style="border:2px solid red;padding:10px;"><big style="color:red">[#ERR_MSG#]</big></div>
+<div class="row">
+    <div class="alert alert-danger col-md-8 col-md-offset-2" align="center">[#ERR_MSG#]</div>
+</div>
 [#endif ERR_MSG#]
 
 [#if OK_MSG!=""#]
-<div style="border:2px solid green;padding:10px;"><big style="color:green">[#OK_MSG#]</big></div>
+<div class="row">
+    <div class="alert alert-success col-md-8 col-md-offset-2" align="center">[#OK_MSG#]</div>
+</div>
 [#endif OK_MSG#]
 
 [#if MODE="backup_iframe"#]
