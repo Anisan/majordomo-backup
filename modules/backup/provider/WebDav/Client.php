@@ -102,6 +102,22 @@ class Client
             'MKCOL'
         );
     }
+    
+    /**
+     * @param $folder
+     * @return Result
+     */
+    public function getSize()
+    {
+        return $this->request(
+            $this->config->hostname,
+            array('Depth: ' . 0, 'Content-Type: text/xml', 'Accept: */*'),
+            'PROPFIND',
+            null,
+            '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:prop><D:quota-available-bytes/><D:quota-used-bytes/></D:prop></D:propfind>'
+        );
+    }
+
 
     /**
      * Executes queries to the cloud
@@ -113,7 +129,7 @@ class Client
      * @access private
      * @final
      */
-    final private function request($url, $headers = array(), $method = '', $file = null)
+    final private function request($url, $headers = array(), $method = '', $file = null, $body = null)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -138,7 +154,10 @@ class Client
             curl_setopt($ch, CURLOPT_INFILE, fopen($file, 'r'));
             curl_setopt($ch, CURLOPT_INFILESIZE, filesize($file));
         }
-
+        if (is_null($body) === false) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        }
         $response = curl_exec($ch);
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         //echo $statusCode;

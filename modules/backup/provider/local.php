@@ -9,6 +9,11 @@ class LocalBackup implements IProvider
         $this->path = $path;
     }
     
+    public function getFreeSpace()
+    {
+        return disk_free_space($this->path);
+    }
+    
     public function getList()
     {
         $pattern = $this->path."/*.";
@@ -32,6 +37,7 @@ class LocalBackup implements IProvider
     {
         @copy($file, $this->path."/".$backup);
     }
+    
     public function deleteBackup($backup)
     {
         $filename = $this->path ."/". $backup;

@@ -3,6 +3,18 @@
 	</button>
 </div>
 
+[#if ERR_MSG!=""#]
+<div style="border:2px solid red;padding:10px;"><big style="color:red">[#ERR_MSG#]</big></div>
+[#endif ERR_MSG#]
+
+[#if OK_MSG!=""#]
+<div style="border:2px solid green;padding:10px;"><big style="color:green">[#OK_MSG#]</big></div>
+[#endif OK_MSG#]
+
+[#if MODE="backup_iframe"#]
+<iframe src="<#ROOTHTML#>modules/backup/update_iframe.php" width="100%" height="600" frameborder=0></iframe>
+[#else MODE#]
+
 <form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
 <script type="text/javascript">
 	function OnSelectType (select) {    
@@ -17,7 +29,8 @@
 
 <ul id="tab" class="nav nav-tabs">
 	<li><a data-toggle="tab" href="#panel_backups">Backups</a></li>
-	<li><a data-toggle="tab" href="#panel_settings">Settings</a></li>
+	<li><a data-toggle="tab" href="#panel_settings_storage">Settings storage</a></li>
+	<li><a data-toggle="tab" href="#panel_settings_backup">Settings backup</a></li>
 	<li><a data-toggle="tab" href="#panel_help">Help</a></li>
 </ul>
 
@@ -25,7 +38,7 @@
     <div id="panel_help" class="tab-pane fade in">
         [#inc help.html#]
     </div>
-	<div id="panel_settings" class="tab-pane fade in">
+	<div id="panel_settings_storage" class="tab-pane fade in">
 	<br>
 	<fieldset>
 		<div class="form-group">
@@ -76,21 +89,63 @@
             <input class="form-control" type="number" data-bv-integer-message="The value is not an integer" min="0" step="1" name="max_count" value="<#MAX_COUNT#>">
             </div>
 		</div>
-		<!--div class="form-group">
+        <!--div class="form-group">
             <label class="control-label">Debug:</label>
             <div class="controls"><input type="checkbox" name="post_debug" value="1"[#if POST_DEBUG="1"#] checked[#endif#]></div>
 		</div-->
 		<div class="form-actions">
             <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
-            <input type="hidden" name="view_mode" value="update_settings">
-            <input type="hidden" name="mode" value="update">
+            <input type="hidden" name="view_mode" value="">
+            <input type="hidden" name="mode" value="update_settings">
+		</div>
+	</fieldset>
+	</div>
+    <div id="panel_settings_backup" class="tab-pane fade in">
+    <br>
+	<fieldset>
+	    <div class="form-group">
+            <label class="control-label">Backup database:</label>
+            <div class="controls"><input type="checkbox" name="backup_database" value="1"[#if BACKUP_DATABASE="1"#] checked[#endif#]></div>
+        </div>
+        <script type="text/javascript">
+            function OnChangeChecked () {    
+                var i;
+                var list="";
+                var x = document.getElementsByClassName("dir");
+                for (i = 0; i < x.length; i++) {
+                    if (x[i].checked)
+                    {
+                        if (list!="")list = list + ",";
+                        list = list + x[i].id;
+                    }
+                }
+                document.getElementById('backup_dirs').value = list;
+            }
+        </script> 
+        <div class="form-group">
+            <label class="control-label">Backup folders:</label>
+            <div class="col-lg-7 well" style="max-height: 600px;overflow: auto;">
+            	<ul class="list-group checked-list-box">
+                    [#begin LIST_DIR#]
+                    <li class="list-group-item">
+                    <label><input class="dir" type="checkbox" id="[#DIR_NAME#]" name="[#DIR_NAME#]" value="[#DIR_CHECK#]"[#if DIR_CHECK='1'#] checked[#endif#] onchange="OnChangeChecked();">[#DIR_NAME#]</label>
+                    </li>
+                    [#end LIST_DIR#]
+                </ul>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
+            <input type="hidden" name="view_mode" value="">
+            <input type="hidden" id="backup_dirs" name="backup_dirs" value="<#BACKUP_DIRS#>">
+            <input type="hidden" name="mode" value="update_settings">
 		</div>
 	</fieldset>
 	</div>
 	<div id="panel_backups" class="tab-pane fade in">
 		<br>
 		<p>
-		<a href="?view_mode=create_backup" class="btn btn-default">Create Backup</a>
+		<a href="?mode=backup_iframe" class="btn btn-default">Create Backup</a>&nbsp; Free space: <#FREESPACE#>
 		</p> 
 		<table width=100% border=0><tr>
 		<td valign=top>
@@ -130,7 +185,7 @@
 		   [#CREATED#]
 		 </td>
 		 <td style="vertical-align:middle">
-		   [#SIZE#] Mb
+		   [#SIZE#]
 		 </td>
 		[#if URL!=""#]
 			<td valign="top"><a href="[#URL#]" class="btn btn-default">Download</a></td> 
@@ -140,7 +195,7 @@
 		 <td style="vertical-align:middle" width="1%" nowrap>
 		  <div style="width:120px">
 		  [#if "<#ACTION#>"=="admin"#]
-			<a href="?view_mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="Delete"><i class="glyphicon glyphicon-remove"></i></a>
+			<a href="?mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="Delete"><i class="glyphicon glyphicon-remove"></i></a>
 		  [#endif ACTION#]
 		  </div>
 		 </td>
@@ -179,6 +234,9 @@
 <script type="text/javascript">
 $('#tab a:first').tab('show');
 </script>
+
+[#endif MODE#]
+
 
 <!-- About -->
 <div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="about1" aria-hidden="true">

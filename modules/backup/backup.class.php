@@ -112,16 +112,8 @@ function run() {
 */
 function admin(&$out) {
     $this->getConfig();
-    $out['PROVIDER'] = $this->config['PROVIDER']; 
-    $out['LOCAL_PATH'] = $this->config['LOCAL_PATH'];
-    $out['WEBDAV_PATH'] = $this->config['WEBDAV_PATH'];
-    $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
-    $out['WEBDAV_LOGIN'] = $this->config['WEBDAV_LOGIN'];
-    $out['WEBDAV_PASSWORD'] = $this->config['WEBDAV_PASSWORD'];
-    $out['MAX_COUNT'] = $this->config['MAX_COUNT'];
-    if ($out['MAX_COUNT'] == "")
-        $out['MAX_COUNT'] = 10;
-    if ($this->view_mode=='update_settings') {
+    
+    if ($this->mode=='update_settings') {
         global $provider;
         $this->config['PROVIDER'] = $provider;
         global $local_path;
@@ -136,33 +128,70 @@ function admin(&$out) {
         $this->config['WEBDAV_PASSWORD'] = $webdav_password; 
         global $max_count;
         $this->config['MAX_COUNT'] = $max_count; 
+        global $backup_database;
+        $this->config['BACKUP_DATABASE'] = $backup_database; 
+        global $backup_dirs;
+        $this->config['BACKUP_DIRS'] = $backup_dirs; 
         $this->saveConfig();
         $this->redirect("?");
     }
-    if($this->view_mode == '') {
-        $this->get_backups($out);
-    }
-    if($this->view_mode == 'delete_backup') {
+    if($this->mode == 'delete_backup') {
         global $name;
         $this->delete_backup($name);
-        $this->redirect("?"); 
+        $this->redirect("?");
     }
     if($this->view_mode == 'create_backup') {
-        $this->create_backup();
-        $this->redirect("?"); 
+        //$this->create_backup($out);
+        //$this->redirect("?");
     }
-            
- //foreach($temp_files as $file) {.............}
+    
+    if($this->view_mode == '') {
+        $out['PROVIDER'] = $this->config['PROVIDER']; 
+        $out['LOCAL_PATH'] = $this->config['LOCAL_PATH'];
+        $out['WEBDAV_PATH'] = $this->config['WEBDAV_PATH'];
+        $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
+        $out['WEBDAV_LOGIN'] = $this->config['WEBDAV_LOGIN'];
+        $out['WEBDAV_PASSWORD'] = $this->config['WEBDAV_PASSWORD'];
+        $out['MAX_COUNT'] = $this->config['MAX_COUNT'];
+        if ($out['MAX_COUNT'] == "")
+            $out['MAX_COUNT'] = 10;
+        $out['BACKUP_DATABASE'] = $this->config['BACKUP_DATABASE'];
+        $out['BACKUP_DIRS'] = $this->config['BACKUP_DIRS'];
+        
+        $list_dir = array_diff(scandir(ROOT), array('.', '..'));
+        $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
+        foreach($list_dir as $dir) {
+            $dir_item = array();
+            $dir_item["DIR_NAME"] = $dir;
+            if (in_array ($dir,$sel_dirs))
+                $dir_item["DIR_CHECK"] = 1;
+            $out["LIST_DIR"][] = $dir_item;
+        }
+        
+        $this->get_backups($out);
+    }
+}
+
+function format_filesize($bytes, $decimals = 2) {
+  $sz = ' KMGTP';
+  $factor = floor((strlen($bytes) - 1) / 3);
+  return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) ." ". @$sz[$factor]."b";
 }
 
 function get_backups(&$out) {
     $provider = $this->getProvider();
+    $freespace = $provider->getFreeSpace();
+    if ($freespace > -1)
+        $out["FREESPACE"] = $this->format_filesize($freespace);
+    else
+        $out["FREESPACE"] = "---";
+
     $backups = $provider->getList();
     //print_r($backups);
     if ($backups)
     {
         foreach($backups as $backup) {
-            $backup['SIZE'] = number_format(($backup['SIZE'] / 1024 / 1024), 2);
+            $backup['SIZE'] = $this->format_filesize($backup['SIZE']);
             //paging($backup, 20, $out); // search result paging
             $out["RESULT"][] = $backup;
         }
@@ -174,77 +203,109 @@ function delete_backup($name) {
   $provider->deleteBackup($name);  
  } 
 
-function create_backup() {
+function create_backup(&$out, $iframe = 0) {
     $provider = $this->getProvider();
     
     $file .= "backup";
     $file .= IsWindowsOS() ? '.tar' : '.tgz';
     
-    if (mkdir(ROOT . 'backup/temp', 0777)) {
-        $this->copyTree(ROOT . 'templates', ROOT . 'backup/temp/templates');
-        $this->copyTree(ROOT . 'img', ROOT . 'backup/temp/img');
-        $this->copyTree(ROOT . 'js', ROOT . 'backup/temp/js');
-        $pt = array('\.css');
-        $this->copyFiles(ROOT, ROOT . 'backup/temp', 0, $pt);
-        $pt = array('\.swf');
-        $this->copyFiles(ROOT, ROOT . 'backup/temp', 0, $pt);
-        $pt = array('\.htc');
-        $this->copyFiles(ROOT, ROOT . 'backup/temp', 0, $pt);
-
-        $this->copyTree(ROOT . 'lib', ROOT . 'backup/temp/lib');
-        $this->copyTree(ROOT . 'modules', ROOT . 'backup/temp/modules');
-        $this->copyTree(ROOT . 'scripts', ROOT . 'backup/temp/scripts');
-        $this->copyTree(ROOT . 'languages', ROOT . 'backup/temp/languages');
-        $pt = array('\.php');
-        $this->copyFiles(ROOT, ROOT . 'backup/temp', 0, $pt);
-        @unlink(ROOT . 'backup/temp/config.php');
-        $this->copyTree(ROOT . 'forum', ROOT . 'backup/temp/forum');
-        @unlink(ROOT . 'backup/temp/forum/config.php');
-
-        $this->copyTree(ROOT . 'cms', ROOT . 'backup/temp/cms');
-        $this->backupdatabase(ROOT . 'backup/temp/dump.sql');
+    
+    if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
+    
+    $backup_dir = ROOT . 'backup_temp/';
+    
+    if ($iframe) $this->echonow("Create temp directory $backup_dir ... ");
         
+    if (mkdir($backup_dir, 0777)) {
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        
+        $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
+        foreach($sel_dirs as $dir) {
+            if ($iframe) $this->echonow("Backup $dir ...");
+            if (!Is_Dir(ROOT . $dir))
+                $this->copyFile(ROOT . $dir, $backup_dir . $dir );
+            else
+                $this->copyTree(ROOT . $dir, $backup_dir . $dir );
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+        }
+        
+        if ($this->config['BACKUP_DATABASE'])
+        {
+            if ($iframe) $this->echonow("Backup datadase ...");
+            $this->backupdatabase($backup_dir . 'dump.sql');
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+        }
+        
+        if ($iframe) $this->echonow("Packing $file ... ");
         if (IsWindowsOS()) {
-            $result = exec('tar.exe --strip-components=2 -C ./backup/temp/ -cvf ./backup/' . $file . ' ./');
+            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ./backup/' . $file . ' ./');
             $new_name = str_replace('.tar', '.tar.gz', $file);
             $result = exec('gzip.exe ./backup/' . $file);
             if (file_exists('./backup/' . $new_name)) {
                 $file = $new_name;
             }
         } else {
-            chdir(ROOT . 'backup/temp');
+            chdir($backup_dir);
             exec('tar cvzf ../' . $file . ' .');
             chdir('../../');
         }
-        $this->removeTree(ROOT . 'backup/temp');
-    }
-    
-    $backupName .= "backup_" . date("YmdHis");
-    $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-    $file = ROOT . 'backup/'. $file;
-    $provider->addBackup($file,$backupName);
-    unlink($file);
-    
-    
-    $backups = $provider->getList();
-    if ($backups)
-    {
-        if (count($backups) > $this->config['MAX_COUNT'])
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        
+        if ($iframe) $this->echonow("Remove temp directory $backup_dir ... ");
+        $this->removeTree($backup_dir);
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        
+        
+        if ($iframe) $this->echonow("Save to storage ... ");
+        $backupName .= "backup_" . date("YmdHis");
+        $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
+        $file = ROOT . '/'. $file;
+        $provider->addBackup($file,$backupName);
+        unlink($file);
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        
+        
+        if ($iframe) $this->echonow("Delete old backups ... ");
+        $backups = $provider->getList();
+        if ($backups)
         {
-            usort($backups, function($a1, $a2) {
-                $v1 = strtotime($a1['CREATED']);
-                $v2 = strtotime($a2['CREATED']);
-                return $v1 - $v2; // $v2 - $v1 to reverse direction
-            });
-            $need_delete = count($backups) - $this->config['MAX_COUNT'];
-            for ($i = 0; $i < $need_delete; $i++) {
-                $provider->deleteBackup($backups[$i]['NAME']);
+            if (count($backups) > $this->config['MAX_COUNT'])
+            {
+                usort($backups, function($a1, $a2) {
+                    $v1 = strtotime($a1['CREATED']);
+                    $v2 = strtotime($a2['CREATED']);
+                    return $v1 - $v2; // $v2 - $v1 to reverse direction
+                });
+                $need_delete = count($backups) - $this->config['MAX_COUNT'];
+                for ($i = 0; $i < $need_delete; $i++) {
+                    $provider->deleteBackup($backups[$i]['NAME']);
+                }
             }
         }
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        
+        return $file;
     }
-    
+    else
+    {
+        if ($iframe) $this->echonow(" Error<br/>", 'red');
+    }
 }
 
+
+    function echonow($msg, $color = '')
+    {
+        if ($color) {
+            echo '<font color="' . $color . '">';
+        }
+        echo $msg;
+        if ($color) {
+            echo '</font>';
+        }
+        echo str_repeat(' ', 16 * 1024);
+        flush();
+        ob_flush();
+    }
 
 function backupdatabase($filename)
     {
