@@ -60,7 +60,9 @@ class WebDavBackup implements IProvider
                     $file["NAME"] = $item["propstat"]["prop"]["displayname"];
                 else
                     $file["NAME"] = basename($item["href"]);
-                $file["CREATED"] = $item["propstat"]["prop"]["creationdate"];
+                $time = strtotime($item["propstat"]["prop"]["creationdate"].' UTC');
+                $dateInLocal = date("Y-m-d H:i:s", $time);
+                $file["CREATED"] = $dateInLocal;
                 if (isset($item["propstat"]["prop"]["getcontentlength"]))
                     $file["SIZE"] = $item["propstat"]["prop"]["getcontentlength"];
                 //$file["URL"] = $item["href"];

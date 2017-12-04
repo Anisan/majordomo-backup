@@ -222,6 +222,7 @@ function create_backup(&$out, $iframe = 0) {
         
         $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
         foreach($sel_dirs as $dir) {
+            if ($dir == "backup_temp") continue;
             if ($iframe) $this->echonow("Backup $dir ...");
             if (!Is_Dir(ROOT . $dir))
                 $this->copyFile(ROOT . $dir, $backup_dir . $dir );
