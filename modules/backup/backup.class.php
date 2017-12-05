@@ -126,6 +126,12 @@ function admin(&$out) {
         $this->config['WEBDAV_LOGIN'] = $webdav_login; 
         global $webdav_password;
         $this->config['WEBDAV_PASSWORD'] = $webdav_password; 
+        global $mailru_path;
+        $this->config['MAILRU_PATH'] = $mailru_path; 
+        global $mailru_login;
+        $this->config['MAILRU_LOGIN'] = $mailru_login; 
+        global $mailru_password;
+        $this->config['MAILRU_PASSWORD'] = $mailru_password; 
         global $max_count;
         $this->config['MAX_COUNT'] = $max_count; 
         global $backup_database;
@@ -152,6 +158,9 @@ function admin(&$out) {
         $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
         $out['WEBDAV_LOGIN'] = $this->config['WEBDAV_LOGIN'];
         $out['WEBDAV_PASSWORD'] = $this->config['WEBDAV_PASSWORD'];
+        $out['MAILRU_PATH'] = $this->config['MAILRU_PATH'];
+        $out['MAILRU_LOGIN'] = $this->config['MAILRU_LOGIN'];
+        $out['MAILRU_PASSWORD'] = $this->config['MAILRU_PASSWORD'];
         $out['MAX_COUNT'] = $this->config['MAX_COUNT'];
         if ($out['MAX_COUNT'] == "")
             $out['MAX_COUNT'] = 10;
@@ -491,6 +500,10 @@ function getProvider() {
             case 2: // GDrive
                 require_once("./modules/backup/provider/gdrive.php");
                 $provider = new GdriveBackup();
+                break;
+            case 3: // Cloud Mail.ru
+                require_once("./modules/backup/provider/mailru.php");
+                $provider = new MailRuBackup($this->config['MAILRU_LOGIN'],$this->config['MAILRU_PASSWORD'],$this->config['MAILRU_PATH']);
                 break;
     }
     return $provider;

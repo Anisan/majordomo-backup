@@ -25,9 +25,11 @@
 	    var fDiv0 = document.getElementById('set_local');
 		var fDiv1 = document.getElementById('set_webdav');
 		var fDiv2 = document.getElementById('set_gdrive');
+		var fDiv3 = document.getElementById('set_mailru');
 		fDiv0.style.display = (select.value == 0) ? 'block' : 'none';
 		fDiv1.style.display = (select.value == 1) ? 'block' : 'none';
 		fDiv2.style.display = (select.value == 2) ? 'block' : 'none';
+		fDiv3.style.display = (select.value == 3) ? 'block' : 'none';
 	}
 </script> 
 
@@ -52,6 +54,7 @@
 					<option value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
 					<option value="1"[#if PROVIDER=="1"#] selected[#endif#]>WebDav</option>
 					<!--option value="2"[#if PROVIDER=="2"#] selected[#endif#]>Google Drive</option-->
+					<option value="3"[#if PROVIDER=="3"#] selected[#endif#]>Cloud Mail.ru</option>
 				</select>
 			</div>
 		</div>
@@ -82,6 +85,20 @@
 		<div id="set_gdrive">
 			<div class="form-group">
 				<label class="control-label">Coming soon...</label>
+			</div>
+		</div>
+		<div id="set_mailru">
+			<div class="form-group">
+				<label class="control-label">Path:</label>
+				<div class="col-lg-7"><input type="text" name="mailru_path" value="<#MAILRU_PATH#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Login Mail.ru:</label>
+				<div class="col-lg-7"><input type="text" name="mailru_login" value="<#MAILRU_LOGIN#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Password Mail.ru:</label>
+				<div class="col-lg-7"><input type="text" name="mailru_password" value="<#MAILRU_PASSWORD#>" class="form-control"></div>
 			</div>
 		</div>
 		<script type="text/javascript">  
