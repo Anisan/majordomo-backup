@@ -142,9 +142,40 @@
                 }
                 document.getElementById('backup_dirs').value = list;
             }
+            function SelectAll()
+            {
+                $(".dir").prop('checked', true);
+                $("#backup_temp").prop( "checked", false );
+            };
+            function UnselectAll()
+            {
+                $(".dir").prop('checked', false);
+            };
+            function SelectStandart()
+            {
+                $("#templates").prop( "checked", true );
+                $("#img").prop( "checked", true );
+                $("#js").prop( "checked", true );
+                $("#css").prop( "checked", true );
+                $("#swf").prop( "checked", true );
+                $("#htc").prop( "checked", true );
+                $("#lib").prop( "checked", true );
+                $("#modules").prop( "checked", true );
+                $("#scripts").prop( "checked", true );
+                $("#languages").prop( "checked", true );
+                $("#php").prop( "checked", true );
+                $("#config.php").prop( "checked", true );
+                $("#cms").prop( "checked", true );
+            };
         </script> 
         <div class="form-group">
             <label class="control-label">Backup folders:</label>
+            <a class="btn btn-default" id="checkStandart" onclick="SelectStandart();"> Select Default </a>
+            <a class="btn btn-default" id="checkAll" onclick="SelectAll();"> Select All </a>
+            <a class="btn btn-default" id="uncheckAll" onclick="UnselectAll();"> Unselect All </a>
+        </div>
+        <div class="form-group">
+        <label class="control-label"></label>
             <div class="col-lg-7 well" style="max-height: 600px;overflow: auto;">
             	<ul class="list-group checked-list-box">
                     [#begin LIST_DIR#]
