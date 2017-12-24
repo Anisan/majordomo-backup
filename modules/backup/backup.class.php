@@ -114,6 +114,8 @@ function admin(&$out) {
     $this->getConfig();
     
     if ($this->mode=='update_settings') {
+        global $backup_debug;
+        $this->config['BACKUP_DEBUG'] = $backup_debug;
         global $provider;
         $this->config['PROVIDER'] = $provider;
         global $local_path;
@@ -152,6 +154,7 @@ function admin(&$out) {
     }
     
     if($this->view_mode == '') {
+        $out['BACKUP_DEBUG'] = $this->config['BACKUP_DEBUG']; 
         $out['PROVIDER'] = $this->config['PROVIDER']; 
         $out['LOCAL_PATH'] = $this->config['LOCAL_PATH'];
         $out['WEBDAV_PATH'] = $this->config['WEBDAV_PATH'];
@@ -196,7 +199,7 @@ function get_backups(&$out) {
         $out["FREESPACE"] = "---";
 
     $backups = $provider->getList();
-    //print_r($backups);
+    $this->debug($backups);
     if ($backups)
     {
         foreach($backups as $backup) {
@@ -214,6 +217,7 @@ function delete_backup($name) {
  } 
 
 function create_backup(&$out, $iframe = 0) {
+    $this->log("Working on backup");
     $provider = $this->getProvider();
     
     $file .= "backup";
@@ -232,6 +236,8 @@ function create_backup(&$out, $iframe = 0) {
         $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
         foreach($sel_dirs as $dir) {
             if ($dir == "backup_temp") continue;
+            $this->log("Copy dir ".$dir);
+        
             if ($iframe) $this->echonow("Backup $dir ...");
             if (!Is_Dir(ROOT . $dir))
                 $this->copyFile(ROOT . $dir, $backup_dir . $dir );
@@ -242,12 +248,14 @@ function create_backup(&$out, $iframe = 0) {
         
         if ($this->config['BACKUP_DATABASE'])
         {
+            $this->log("Backup datadase");
             if ($iframe) $this->echonow("Backup datadase ...");
             $this->backupdatabase($backup_dir . 'dump.sql');
             if ($iframe) $this->echonow(" OK<br/>", 'green');
         }
         
         if ($iframe) $this->echonow("Packing $file ... ");
+        $this->log("Packing $file");
         if (IsWindowsOS()) {
             $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ./' . $file . ' ./');
             $new_name = str_replace('.tar', '.tar.gz', $file);
@@ -273,16 +281,25 @@ function create_backup(&$out, $iframe = 0) {
         $this->removeTree($backup_dir);
         if ($iframe) $this->echonow(" OK<br/>", 'green');
         
-        
+        $this->log("Save to storage");
         if ($iframe) $this->echonow("Save to storage ... ");
         $backupName .= "backup_" . date("YmdHis");
         $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
         $file = ROOT . DIRECTORY_SEPARATOR . $file;
         $provider->addBackup($file,$backupName);
         unlink($file);
-        if ($iframe) $this->echonow(" OK<br/>", 'green');
+        if ($provider->error == "")
+        {
+           if ($iframe) $this->echonow(" OK<br/>", 'green');
+        }
+        else
+        {
+            if ($iframe) $this->echonow(" Error<br/>", 'red');
+            $this->log($provider->error);
+            return;
+        }
         
-        
+        $this->log("Delete old backups");
         if ($iframe) $this->echonow("Delete old backups ... ");
         $backups = $provider->getList();
         if ($backups)
@@ -292,16 +309,17 @@ function create_backup(&$out, $iframe = 0) {
                 usort($backups, function($a1, $a2) {
                     $v1 = strtotime($a1['CREATED']);
                     $v2 = strtotime($a2['CREATED']);
-                    return $v1 - $v2; // $v2 - $v1 to reverse direction
+                    return $v2 - $v1; // $v2 - $v1 to reverse direction
                 });
                 $need_delete = count($backups) - $this->config['MAX_COUNT'];
                 for ($i = 0; $i < $need_delete; $i++) {
+                    $this->log("Delete old backup - ".$backups[$i]['NAME']);
                     $provider->deleteBackup($backups[$i]['NAME']);
                 }
             }
         }
         if ($iframe) $this->echonow(" OK<br/>", 'green');
-        
+        $this->log("End backup");
         return $file;
     }
     else
@@ -490,23 +508,42 @@ function getProvider() {
     $this->getConfig();
     switch ($this->config['PROVIDER']) {
             case 0: // local
+                $this->log("Provider - LocalBackup");
                 require_once("./modules/backup/provider/local.php");
-                $provider = new LocalBackup($this->config['LOCAL_PATH']);
+                $provider = new LocalBackup($this->config['LOCAL_PATH'],$this);
                 break;
             case 1: // WebDav
+                $this->log("Provider - WebDavBackup");
                 require_once("./modules/backup/provider/webdav.php");
-                $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH']);
+                $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH'],$this);
                 break;
             case 2: // GDrive
+                $this->log("Provider - GdriveBackup");
                 require_once("./modules/backup/provider/gdrive.php");
                 $provider = new GdriveBackup();
                 break;
             case 3: // Cloud Mail.ru
+                $this->log("Provider - MailRuBackup");
                 require_once("./modules/backup/provider/mailru.php");
-                $provider = new MailRuBackup($this->config['MAILRU_LOGIN'],$this->config['MAILRU_PASSWORD'],$this->config['MAILRU_PATH']);
+                $provider = new MailRuBackup($this->config['MAILRU_LOGIN'],$this->config['MAILRU_PASSWORD'],$this->config['MAILRU_PATH'],$this);
                 break;
     }
     return $provider;
+}
+
+function debug($content) {
+    if($this->config['BACKUP_DEBUG'])
+        $this->log(print_r($content,true));
+}
+function log($message) {
+        //echo $message . "\n";
+        // DEBUG MESSAGE LOG
+        if(!is_dir(ROOT . 'debmes')) {
+            mkdir(ROOT . 'debmes', 0777);
+        }
+        $today_file = ROOT . 'debmes/log_' . date('Y-m-d') . '-backup.php.txt';
+        $data = date("H:i:s")." " . $message . "\n";
+        file_put_contents($today_file, $data, FILE_APPEND | LOCK_EX);
 }
 
 /**

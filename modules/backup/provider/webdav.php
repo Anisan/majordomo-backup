@@ -5,13 +5,13 @@ class WebDavBackup implements IProvider
 {
     public $error;
     
-    function __construct($url, $login, $password, $path)
+    function __construct($url, $login, $password, $path, $logger)
     {
         $this->url = $url;
         $this->login = $login;
         $this->password = $password;
         $this->path = $path;
-        
+        $this->logger = $logger;
         require_once(DIR_MODULES . 'backup/provider/WebDav/Config.php');
         $config = new Config($this->url,$this->login,$this->password);
         require_once(DIR_MODULES . 'backup/provider/WebDav/Client.php');
@@ -22,7 +22,14 @@ class WebDavBackup implements IProvider
     public function getFreeSpace()
     {
         $result = $this->client->getSize();
+        if ($result->code != 200 && $result->code != 207)
+        {
+            $this->error = $result->code. " - " .$result->response;
+            $this->logger->log("getFreeSpace - ".$result->code. " - " .$result->response);
+            return;
+        }
         $result = $result->getResponseArray();
+        $this->logger->debug("getFreeSpace - ".$result);
         if ($result->code != 200)
         {
             $this->error = $result->response;
@@ -43,9 +50,11 @@ class WebDavBackup implements IProvider
         if ($result->code != 200 && $result->code != 207)
         {
             $this->error = $result->code. " - " .$result->response;
+            $this->logger->log("getList - ".$result->code. " - " .$result->response);
             return;
         }
         $result = $result->getResponseArray();
+        $this->logger->debug("getList - ".$result);
         //echo print_r($result);
         if ($result) { 
         //{"response":[{"href":"\/Backups\/","propstat":{"status":"HTTP\/1.1 200 OK","prop":{"resourcetype":{"collection":{}},"getlastmodified":"Thu, 19 Oct 2017 12:53:49 GMT","displayname":"Backups","creationdate":"2017-10-19T12:53:49Z"}}},{"href":"\/Backups\/Result.php","propstat":{"status":"HTTP\/1.1 200 OK","prop":{"resourcetype":{},"getlastmodified":"Sat, 21 Oct 2017 10:54:03 GMT","getetag":"e428489fbce726bcf57275b8ac8b2a6b","getcontenttype":"text\/php","getcontentlength":"747","displayname":"Result.php","creationdate":"2017-10-21T10:54:03Z"}}}]}end propfind
@@ -76,12 +85,14 @@ class WebDavBackup implements IProvider
     public function addBackup($file, $backup)
     {
         $result = $this->client->put($this->path."/".$backup,$file);
-        if ($result->code != 200)
+        if ($result->code != 201)
         {
             $this->error = $result->response;
+            $this->logger->log("addBackup - ".$result->code. " - " .$result->response);
             return;
         }
         $result = $result->getResponseArray();
+        $this->logger->debug("addBackup - ".$result);
         //echo print_r($result);
     }
     
@@ -89,12 +100,14 @@ class WebDavBackup implements IProvider
     {
         $filename = $this->path ."/". $backup;
         $result = $this->client->delete($filename);
-        if ($result->code != 200)
+        if ($result->code != 204)
         {
             $this->error = $result->response;
+            $this->logger->log("deleteBackup - ".$result->code. " - " .$result->response);
             return;
         }
         $result = $result->getResponseArray();
+        $this->logger->debug("deleteBackup - ".$result);
         //echo print_r($result);
     }
 	

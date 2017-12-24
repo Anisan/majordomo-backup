@@ -7,11 +7,13 @@ class MailRuBackup implements IProvider
 {
     public $error;
     
-    function __construct($login, $password, $path)
+    function __construct($login, $password, $path, $logger)
     {
         $this->path = $path;
+        $this->logger = $logger;
         $this->cloud = new CloudMailRu($login, $password);
         if (!$this->cloud->login()) {
+            $this->logger->log('Error autorization');
             $this->error='Error autorization';
         }
     }
@@ -19,7 +21,7 @@ class MailRuBackup implements IProvider
     public function getFreeSpace()
     {
         $res = $this->cloud->getSpace($this->path);
-        //print_r($res);
+        $this->logger->debug("getFreeSpace - ".$res);
         $used = $res['body']['used'];
         $total = $res['body']['total'];
         $free = $total - $used;
@@ -29,7 +31,7 @@ class MailRuBackup implements IProvider
     public function getList()
     {
         $res = $this->cloud->getDir($this->path);
-        //print_r($res);
+        $this->logger->debug("getList - ".$res);
         $list = $res['body']['list'];
         foreach ($list as $fileCloud) {
             $file = array();
@@ -45,14 +47,14 @@ class MailRuBackup implements IProvider
     public function addBackup($file, $backup)
     {
         $res = $this->cloud->loadFile($file,$this->path."/".$backup);
-        print_r($res);
+        $this->logger->debug("addBackup - ".$res);
     }
     
     public function deleteBackup($backup)
     {
         $filename = $this->path ."/". $backup;
         $res = $this->cloud->removeFile_from_cloud($filename);
-        print_r($res);
+        $this->logger->debug("deleteBackup - ".$res);
     }
 }
 

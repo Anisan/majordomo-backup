@@ -5,9 +5,10 @@ class LocalBackup implements IProvider
 {
     public $error;
     
-    function __construct($path)
+    function __construct($path, $logger)
     {
         $this->path = $path;
+        $this->logger = $logger;
     }
     
     public function getFreeSpace()
