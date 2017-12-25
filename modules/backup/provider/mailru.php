@@ -36,7 +36,7 @@ class MailRuBackup implements IProvider
         foreach ($list as $fileCloud) {
             $file = array();
             $file["NAME"] = $fileCloud['name'];
-            $file["CREATED"] = date("d/m/Y H:i:s", $fileCloud['mtime']);
+            $file["CREATED"] = date("Y-m-d H:i:s", $fileCloud['mtime']);
             $file["SIZE"] = $fileCloud['size'];
             //$file["URL"] = $filename;
             $files[] = $file;

@@ -202,6 +202,11 @@ function get_backups(&$out) {
     $this->debug($backups);
     if ($backups)
     {
+        usort($backups, function($a1, $a2) {
+                    $v1 = strtotime($a1['CREATED']);
+                    $v2 = strtotime($a2['CREATED']);
+                    return $v1 - $v2; // $v2 - $v1 to reverse direction
+                });
         foreach($backups as $backup) {
             $backup['SIZE'] = $this->format_filesize($backup['SIZE']);
             //paging($backup, 20, $out); // search result paging
@@ -309,7 +314,7 @@ function create_backup(&$out, $iframe = 0) {
                 usort($backups, function($a1, $a2) {
                     $v1 = strtotime($a1['CREATED']);
                     $v2 = strtotime($a2['CREATED']);
-                    return $v2 - $v1; // $v2 - $v1 to reverse direction
+                    return $v1 - $v2; // $v2 - $v1 to reverse direction
                 });
                 $need_delete = count($backups) - $this->config['MAX_COUNT'];
                 for ($i = 0; $i < $need_delete; $i++) {
