@@ -37,6 +37,7 @@
 	<li><a data-toggle="tab" href="#panel_backups">Backups</a></li>
 	<li><a data-toggle="tab" href="#panel_settings_storage">Settings storage</a></li>
 	<li><a data-toggle="tab" href="#panel_settings_backup">Settings backup</a></li>
+	<li><a data-toggle="tab" href="#panel_settings_notify">Settings notify</a></li>
 	<li><a data-toggle="tab" href="#panel_help">Help</a></li>
 </ul>
 
@@ -194,6 +195,27 @@
 		</div>
 	</fieldset>
 	</div>
+    <div id="panel_settings_notify" class="tab-pane fade in">
+        <br>
+        <fieldset>
+        <div class="form-group ">
+            <label class="control-label" for="inputTitle">Execute on created backup:</label>
+            <div class="col-lg-5">
+                <select name="script_create_id" class="form-control [#if ERR_SCRIPT_ID#]alert-danger[#endif#]">
+                    <option value="0">
+                    [#begin SCRIPTS#]
+                    <option value="[#ID#]"[#if ID="<#SCRIPT_CREATE_ID#>"#] selected[#endif#]>[#TITLE#]
+                    [#end SCRIPTS#]
+                </select>
+            </div>
+        </div> 
+		<div class="form-actions">
+            <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
+            <input type="hidden" name="view_mode" value="">
+            <input type="hidden" name="mode" value="update_settings">
+		</div>
+	</fieldset>
+    </div>
 	<div id="panel_backups" class="tab-pane fade in">
 		<br>
 		<p>

@@ -23,6 +23,7 @@ echo "<body>";
 $out=array();
 
 $res=$sv->create_backup($out, 1);
+$sv->echonow($res);
 if ($res) {
    $sv->echonow("Redirecting to main page...");
    $sv->echonow('<script language="javascript">window.top.location.href="'.ROOTHTML.'admin.php?md=panel&action=backup";</script>');

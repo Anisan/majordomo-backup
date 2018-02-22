@@ -140,6 +140,9 @@ function admin(&$out) {
         $this->config['BACKUP_DATABASE'] = $backup_database; 
         global $backup_dirs;
         $this->config['BACKUP_DIRS'] = $backup_dirs; 
+        global $script_create_id;
+        $this->config['SCRIPT_CREATE_ID'] = $script_create_id;
+        
         $this->saveConfig();
         $this->redirect("?");
     }
@@ -179,6 +182,10 @@ function admin(&$out) {
                 $dir_item["DIR_CHECK"] = 1;
             $out["LIST_DIR"][] = $dir_item;
         }
+        
+        $out['SCRIPT_CREATE_ID'] = $this->config['SCRIPT_CREATE_ID'];
+        $out['SCRIPTS']=SQLSelect("SELECT ID, TITLE FROM scripts ORDER BY TITLE");
+    
         
         $this->get_backups($out);
     }
@@ -222,12 +229,14 @@ function delete_backup($name) {
  } 
 
 function create_backup(&$out, $iframe = 0) {
+    $state = "Unknow";
+    $description = "";
+    
     $this->log("Working on backup");
     $provider = $this->getProvider();
     
     $file .= "backup";
     $file .= IsWindowsOS() ? '.tar' : '.tgz';
-    
     
     if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
@@ -275,66 +284,83 @@ function create_backup(&$out, $iframe = 0) {
         }
         if (file_exists(ROOT . $file)) {
             if ($iframe) $this->echonow(" OK<br/>", 'green');
-        }
-        else
-        {
-            if ($iframe) $this->echonow(" Error<br/>", 'red');
-            return;
-        }
         
-        if ($iframe) $this->echonow("Remove temp directory $backup_dir ... ");
-        $this->removeTree($backup_dir);
-        if ($iframe) $this->echonow(" OK<br/>", 'green');
-        
-        $this->log("Save to storage");
-        if ($iframe) $this->echonow("Save to storage ... ");
-        $backupName .= "backup_" . date("YmdHis");
-        $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-        $file = ROOT . DIRECTORY_SEPARATOR . $file;
-        $provider->addBackup($file,$backupName);
-        unlink($file);
-        if ($provider->error == "")
-        {
-           if ($iframe) $this->echonow(" OK<br/>", 'green');
-        }
-        else
-        {
-            if ($iframe) $this->echonow(" Error<br/>", 'red');
-            $this->log($provider->error);
-            return;
-        }
-        
-        $this->log("Delete old backups");
-        if ($iframe) $this->echonow("Delete old backups ... ");
-        $backups = $provider->getList();
-        if ($backups)
-        {
-            if (count($backups) > $this->config['MAX_COUNT'])
+            if ($iframe) $this->echonow("Remove temp directory $backup_dir ... ");
+            $this->removeTree($backup_dir);
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+            
+            $this->log("Save to storage");
+            if ($iframe) $this->echonow("Save to storage ... ");
+            $backupName .= "backup_" . date("YmdHis");
+            $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
+            $file = ROOT . DIRECTORY_SEPARATOR . $file;
+            $provider->addBackup($file,$backupName);
+            unlink($file);
+            if ($provider->error == "")
             {
-                usort($backups, function($a1, $a2) {
-                    $v1 = strtotime($a1['CREATED']);
-                    $v2 = strtotime($a2['CREATED']);
-                    return $v1 - $v2; // $v2 - $v1 to reverse direction
-                });
-                $need_delete = count($backups) - $this->config['MAX_COUNT'];
-                for ($i = 0; $i < $need_delete; $i++) {
-                    $this->log("Delete old backup - ".$backups[$i]['NAME']);
-                    $provider->deleteBackup($backups[$i]['NAME']);
+                if ($iframe) $this->echonow(" OK<br/>", 'green');
+                
+                $this->log("Delete old backups");
+                if ($iframe) $this->echonow("Delete old backups ... ");
+                $backups = $provider->getList();
+                if ($backups)
+                {
+                    if (count($backups) > $this->config['MAX_COUNT'])
+                    {
+                        usort($backups, function($a1, $a2) {
+                            $v1 = strtotime($a1['CREATED']);
+                            $v2 = strtotime($a2['CREATED']);
+                            return $v1 - $v2; // $v2 - $v1 to reverse direction
+                        });
+                        $need_delete = count($backups) - $this->config['MAX_COUNT'];
+                        for ($i = 0; $i < $need_delete; $i++) {
+                            $this->log("Delete old backup - ".$backups[$i]['NAME']);
+                            $provider->deleteBackup($backups[$i]['NAME']);
+                        }
+                    }
                 }
+                if ($iframe) $this->echonow(" OK<br/>", 'green');
+                $this->log("End backup");
+                $state = "Ok";
+                $description = "";
+                if ($iframe) $this->echonow("<b>Backup end</b><br/>");
+            }
+            else
+            {
+                if ($iframe) $this->echonow(" Error<br/>", 'red');
+                $this->log($provider->error);
+                $state = "Error";
+                $description = $provider->error;
             }
         }
-        if ($iframe) $this->echonow(" OK<br/>", 'green');
-        $this->log("End backup");
-        return $file;
+        else
+        {
+            if ($iframe) $this->echonow(" Error<br/>", 'red');
+            $state = "Error";
+            $description = "Error packing";
+        }
+        
     }
     else
     {
         if ($iframe) $this->echonow(" Error<br/>", 'red');
+        $state = "Error";
+        $description = "Error create temp directory ".$backup_dir;
     }
+    
+    if ($this->config['SCRIPT_CREATE_ID']) {
+        $this->log("Run script ".$this->config['SCRIPT_CREATE_ID']);
+        $params=array();
+        $params['STATE']=$state;
+        $params['DESCRIPTION']=$description;
+        runScriptSafe($this->config['SCRIPT_CREATE_ID'], $params);
+    }
+    if ($state == "Ok")
+        return "Ok";
 }
 
 
-    function echonow($msg, $color = '')
+function echonow($msg, $color = '')
     {
         if ($color) {
             echo '<font color="' . $color . '">';
