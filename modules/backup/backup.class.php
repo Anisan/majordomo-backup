@@ -134,8 +134,18 @@ function admin(&$out) {
         $this->config['MAILRU_LOGIN'] = $mailru_login; 
         global $mailru_password;
         $this->config['MAILRU_PASSWORD'] = $mailru_password; 
+        global $ftp_path;
+        $this->config['FTP_PATH'] = $ftp_path; 
+        global $ftp_url;
+        $this->config['FTP_URL'] = $ftp_url; 
+        global $ftp_login;
+        $this->config['FTP_LOGIN'] = $ftp_login; 
+        global $ftp_password;
+        $this->config['FTP_PASSWORD'] = $ftp_password; 
         global $max_count;
         $this->config['MAX_COUNT'] = $max_count; 
+        global $temp_backup_folder;
+        $this->config['TEMP_BACKUP_FOLDER'] = $temp_backup_folder; 
         global $backup_database;
         $this->config['BACKUP_DATABASE'] = $backup_database; 
         global $backup_dirs;
@@ -167,9 +177,14 @@ function admin(&$out) {
         $out['MAILRU_PATH'] = $this->config['MAILRU_PATH'];
         $out['MAILRU_LOGIN'] = $this->config['MAILRU_LOGIN'];
         $out['MAILRU_PASSWORD'] = $this->config['MAILRU_PASSWORD'];
+        $out['FTP_PATH'] = $this->config['FTP_PATH'];
+        $out['FTP_URL'] = $this->config['FTP_URL'];
+        $out['FTP_LOGIN'] = $this->config['FTP_LOGIN'];
+        $out['FTP_PASSWORD'] = $this->config['FTP_PASSWORD'];
         $out['MAX_COUNT'] = $this->config['MAX_COUNT'];
         if ($out['MAX_COUNT'] == "")
             $out['MAX_COUNT'] = 10;
+        $out['TEMP_BACKUP_FOLDER'] = $this->config['TEMP_BACKUP_FOLDER'];
         $out['BACKUP_DATABASE'] = $this->config['BACKUP_DATABASE'];
         $out['BACKUP_DIRS'] = $this->config['BACKUP_DIRS'];
         
@@ -240,7 +255,10 @@ function create_backup(&$out, $iframe = 0) {
     
     if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
-    $backup_dir = ROOT . 'backup_temp'. DIRECTORY_SEPARATOR;
+    $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
+    if ($backup_dir=="")
+        $backup_dir = ROOT;
+    $backup_dir .= 'backup_temp'. DIRECTORY_SEPARATOR;
     
     if ($iframe) $this->echonow("Create temp directory $backup_dir ... ");
         
@@ -557,6 +575,11 @@ function getProvider() {
                 $this->log("Provider - MailRuBackup");
                 require_once("./modules/backup/provider/mailru.php");
                 $provider = new MailRuBackup($this->config['MAILRU_LOGIN'],$this->config['MAILRU_PASSWORD'],$this->config['MAILRU_PATH'],$this);
+                break;
+            case 4: // FTP
+                $this->log("Provider - FTP");
+                require_once("./modules/backup/provider/ftp.php");
+                $provider = new FtpBackup($this->config['FTP_URL'],$this->config['FTP_LOGIN'],$this->config['FTP_PASSWORD'],$this->config['FTP_PATH'],$this);
                 break;
     }
     return $provider;

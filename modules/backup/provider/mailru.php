@@ -38,7 +38,8 @@ class MailRuBackup implements IProvider
             $file["NAME"] = $fileCloud['name'];
             $file["CREATED"] = date("Y-m-d H:i:s", $fileCloud['mtime']);
             $file["SIZE"] = $fileCloud['size'];
-            //$file["URL"] = $filename;
+            //print_r($fileCloud);
+            $file["URL"] = "https://cloud.mail.ru/home".$fileCloud['home'];
             $files[] = $file;
         }
         return $files;
