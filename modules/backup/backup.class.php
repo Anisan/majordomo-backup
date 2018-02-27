@@ -243,26 +243,26 @@ function delete_backup($name) {
   $provider->deleteBackup($name);  
  } 
 
-function create_backup(&$out, $iframe = 0) {
+function create_backup(&$out = false, $iframe = 0) {
     $state = "Unknow";
     $description = "";
     
     $this->log("Working on backup");
     $provider = $this->getProvider();
     
-    $file .= "backup";
-    $file .= IsWindowsOS() ? '.tar' : '.tgz';
-    
-    if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
+        if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
     $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
     if ($backup_dir=="")
         $backup_dir = ROOT;
-    $backup_dir .= 'backup_temp'. DIRECTORY_SEPARATOR;
+    $backup_dir_temp .= $backup_dir.'backup_temp'. DIRECTORY_SEPARATOR;
     
-    if ($iframe) $this->echonow("Create temp directory $backup_dir ... ");
+    $file = $backup_dir."backup";
+    $file .= IsWindowsOS() ? '.tar' : '.tgz';
+    
+    if ($iframe) $this->echonow("Create temp directory $backup_dir_temp ... ");
         
-    if (mkdir($backup_dir, 0777)) {
+    if (mkdir($backup_dir_temp, 0777)) {
         if ($iframe) $this->echonow(" OK<br/>", 'green');
         
         $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
@@ -272,9 +272,9 @@ function create_backup(&$out, $iframe = 0) {
         
             if ($iframe) $this->echonow("Backup $dir ...");
             if (!Is_Dir(ROOT . $dir))
-                $this->copyFile(ROOT . $dir, $backup_dir . $dir );
+                $this->copyFile(ROOT . $dir, $backup_dir_temp . $dir );
             else
-                $this->copyTree(ROOT . $dir, $backup_dir . $dir );
+                $this->copyTree(ROOT . $dir, $backup_dir_temp . $dir );
             if ($iframe) $this->echonow(" OK<br/>", 'green');
         }
         
@@ -282,36 +282,34 @@ function create_backup(&$out, $iframe = 0) {
         {
             $this->log("Backup datadase");
             if ($iframe) $this->echonow("Backup datadase ...");
-            $this->backupdatabase($backup_dir . 'dump.sql');
+            $this->backupdatabase($backup_dir_temp . 'dump.sql');
             if ($iframe) $this->echonow(" OK<br/>", 'green');
         }
         
         if ($iframe) $this->echonow("Packing $file ... ");
         $this->log("Packing $file");
         if (IsWindowsOS()) {
-            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ./' . $file . ' ./');
+            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ' . $file . ' ./');
             $new_name = str_replace('.tar', '.tar.gz', $file);
-            $result = exec('gzip.exe ./' . $file);
+            $result = exec('gzip.exe ' . $file);
             if (file_exists($new_name)) {
                 $file = $new_name;
             }
         } else {
-            chdir($backup_dir);
-            exec('tar cvzf ../' . $file . ' .');
-            chdir('../../');
+            chdir($backup_dir_temp);
+            exec('tar cvzf ' . $file . ' .');
         }
-        if (file_exists(ROOT . $file)) {
+        if (file_exists($file)) {
             if ($iframe) $this->echonow(" OK<br/>", 'green');
         
-            if ($iframe) $this->echonow("Remove temp directory $backup_dir ... ");
-            $this->removeTree($backup_dir);
+            if ($iframe) $this->echonow("Remove temp directory $backup_dir_temp ... ");
+            $this->removeTree($backup_dir_temp);
             if ($iframe) $this->echonow(" OK<br/>", 'green');
             
             $this->log("Save to storage");
             if ($iframe) $this->echonow("Save to storage ... ");
             $backupName .= "backup_" . date("YmdHis");
             $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-            $file = ROOT . DIRECTORY_SEPARATOR . $file;
             $provider->addBackup($file,$backupName);
             unlink($file);
             if ($provider->error == "")
