@@ -339,7 +339,7 @@ class CloudMailRu
     {
         $start = strpos($str, '"csrf"');
         if ($start > 0) {
-            $start = $start + 8;
+            $start = $start + 9;
             $str_out = substr($str, $start, 32);
             return $str_out;
         } else {
