@@ -27,11 +27,13 @@
 		var fDiv2 = document.getElementById('set_gdrive');
 		var fDiv3 = document.getElementById('set_mailru');
 		var fDiv4 = document.getElementById('set_ftp');
+		var fDiv5 = document.getElementById('set_dropbox');
 		fDiv0.style.display = (select.value == 0) ? 'block' : 'none';
 		fDiv1.style.display = (select.value == 1) ? 'block' : 'none';
 		fDiv2.style.display = (select.value == 2) ? 'block' : 'none';
 		fDiv3.style.display = (select.value == 3) ? 'block' : 'none';
 		fDiv4.style.display = (select.value == 4) ? 'block' : 'none';
+		fDiv5.style.display = (select.value == 5) ? 'block' : 'none';
 	}
 </script> 
 
@@ -59,6 +61,7 @@
 					<!--option value="2"[#if PROVIDER=="2"#] selected[#endif#]>Google Drive</option-->
 					<option value="3"[#if PROVIDER=="3"#] selected[#endif#]>Cloud Mail.ru</option>
 					<option value="4"[#if PROVIDER=="4"#] selected[#endif#]>FTP</option>
+					<option value="5"[#if PROVIDER=="5"#] selected[#endif#]>Dropbox</option>
 				</select>
 			</div>
 		</div>
@@ -123,6 +126,25 @@
 				<label class="control-label">Password:</label>
 				<div class="col-lg-7"><input type="text" name="ftp_password" value="<#FTP_PASSWORD#>" class="form-control"></div>
 			</div>
+		</div>
+		<div id="set_dropbox">
+			[#if DROPBOX_LOGIN==""#]
+			<div class="form-group">
+				<label class="control-label">Access code:</label>
+				<div class="col-lg-5"><input type="text" name="dropbox_code" value="" class="form-control"></div>
+				<div class="col-lg-2">
+				<a href="https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=nshoq07v5avv4o8" class="btn btn-info form-control" role="button" target="_blank">Get code</a>
+				</div>
+			</div>
+			[#else#]
+			<div class="form-group">
+				<label class="control-label">Login:</label>
+				<div class="col-lg-5"> <#DROPBOX_LOGIN#></div>
+				<div class="col-lg-2">
+				<a href="?mode=connection_delete" class="btn btn-info form-control" role="button">Delete connection</a>
+				</div>
+			</div>
+			[#endif#]
 		</div>
 		<script type="text/javascript">  
 			OnSelectType ( document.getElementById('provider') );

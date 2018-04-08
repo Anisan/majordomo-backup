@@ -142,6 +142,17 @@ function admin(&$out) {
         $this->config['FTP_LOGIN'] = $ftp_login; 
         global $ftp_password;
         $this->config['FTP_PASSWORD'] = $ftp_password; 
+        
+        if ($provider == 5 && $this->config['DROPBOX_TOKEN']=="")
+        {
+            $this->saveConfig();
+            $dp = $this->getProvider();
+            global $dropbox_code;
+            $token = $dp->getToken($dropbox_code);
+            $this->config['DROPBOX_TOKEN']=$token['t'];
+            $this->config['DROPBOX_ACCOUNT']=$token['account_id'];
+        }
+        
         global $max_count;
         $this->config['MAX_COUNT'] = $max_count; 
         global $temp_backup_folder;
@@ -164,6 +175,12 @@ function admin(&$out) {
     if($this->view_mode == 'create_backup') {
         //$this->create_backup($out);
         //$this->redirect("?");
+    }
+    if($this->mode == 'connection_delete') {
+        $this->config['DROPBOX_TOKEN']="";
+        $this->config['DROPBOX_ACCOUNT']="";
+        $this->saveConfig();
+        $this->redirect("?");
     }
     
     if($this->view_mode == '') {
@@ -188,6 +205,13 @@ function admin(&$out) {
         $out['BACKUP_DATABASE'] = $this->config['BACKUP_DATABASE'];
         $out['BACKUP_DIRS'] = $this->config['BACKUP_DIRS'];
         
+        if ($this->config['PROVIDER'] == 5 && $this->config['DROPBOX_TOKEN']!="")
+        {
+            $dp = $this->getProvider();
+            $info = $dp->GetInfo();
+            $out['DROPBOX_LOGIN'] = $info;
+        }
+        
         $list_dir = array_diff(scandir(ROOT), array('.', '..'));
         $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
         foreach($list_dir as $dir) {
@@ -200,7 +224,6 @@ function admin(&$out) {
         
         $out['SCRIPT_CREATE_ID'] = $this->config['SCRIPT_CREATE_ID'];
         $out['SCRIPTS']=SQLSelect("SELECT ID, TITLE FROM scripts ORDER BY TITLE");
-    
         
         $this->get_backups($out);
     }
@@ -509,7 +532,6 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
     
     function removeTree($destination, $iframe = 0)
     {
-
         $res = 1;
 
         if (!Is_Dir($destination)) {
@@ -520,7 +542,6 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
             if ($iframe) {
                 $this->echonow("Removing dir $destination ... ");
             }
-
 
             while (($file = readdir($dir)) !== false) {
                 if (Is_Dir($destination . "/" . $file) && ($file != '.') && ($file != '..')) {
@@ -578,6 +599,11 @@ function getProvider() {
                 $this->log("Provider - FTP");
                 require_once("./modules/backup/provider/ftp.php");
                 $provider = new FtpBackup($this->config['FTP_URL'],$this->config['FTP_LOGIN'],$this->config['FTP_PASSWORD'],$this->config['FTP_PATH'],$this);
+                break;
+            case 5: // Dropbox
+                $this->log("Provider - Dropbox");
+                require_once("./modules/backup/provider/Dropbox.php");
+                $provider = new DropboxBackup($this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
                 break;
     }
     return $provider;
