@@ -1,8 +1,3 @@
-<div class="float-right">
-	<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#about">About&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign icon-white"></span>
-	</button>
-</div>
-
 [#if ERR_MSG!=""#]
 <div class="row">
     <div class="alert alert-danger col-md-8 col-md-offset-2" align="center">[#ERR_MSG#]</div>
@@ -37,13 +32,15 @@
 	}
 </script> 
 
+<button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#about"><#LANG_ABOUT#>&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign icon-white"></span></button>
 <ul id="tab" class="nav nav-tabs">
-	<li><a data-toggle="tab" href="#panel_backups">Backups</a></li>
-	<li><a data-toggle="tab" href="#panel_settings_storage">Settings storage</a></li>
-	<li><a data-toggle="tab" href="#panel_settings_backup">Settings backup</a></li>
-	<li><a data-toggle="tab" href="#panel_settings_notify">Settings notify</a></li>
-	<li><a data-toggle="tab" href="#panel_help">Help</a></li>
+	<li><a data-toggle="tab" href="#panel_backups"><span class="glyphicon glyphicon-cloud"></span> <#LANG_BAK_BACKUPS#></a></li>
+	<li><a data-toggle="tab" href="#panel_settings_storage"><span class="glyphicon glyphicon-cog"></span> <#LANG_BAK_SETTING_STORAGE#></a></li>
+	<li><a data-toggle="tab" href="#panel_settings_backup"><span class="glyphicon glyphicon-th-list"></span> <#LANG_BAK_SETTING_BACKUP#></a></li>
+	<li><a data-toggle="tab" href="#panel_settings_notify"><span class="glyphicon glyphicon-bell"></span> <#LANG_BAK_SETTING_NOTIFY#></a></li>
+	<li><a data-toggle="tab" href="#panel_help"><span class="glyphicon glyphicon-exclamation-sign"></span> <#LANG_HELP#></a></li>
 </ul>
+
 
 <div class="tab-content">
     <div id="panel_help" class="tab-pane fade in">
@@ -53,7 +50,7 @@
 	<br>
 	<fieldset>
 		<div class="form-group">
-			<label class="control-label col-lg-4">Provider: </label>
+			<label class="control-label col-lg-4"><#LANG_BAK_PROVIDER#>: </label>
 			<div class="col-lg-7">
 				<select name="provider" class="form-control" id="provider" onchange="OnSelectType(this)">
 					<option value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
@@ -67,25 +64,25 @@
 		</div>
 		<div id="set_local">
 			<div class="form-group">
-				<label class="control-label">Local path:</label>
+				<label class="control-label"><#LANG_BAK_LOCAL_PATH#>:</label>
 				<div class="col-lg-7"><input type="text" name="local_path" value="<#LOCAL_PATH#>" class="form-control"></div>
 			</div>
 		</div>
 		<div id="set_webdav">
 			<div class="form-group">
-				<label class="control-label">Path:</label>
+				<label class="control-label"><#LANG_BAK_PATH#>:</label>
 				<div class="col-lg-7"><input type="text" name="webdav_path" value="<#WEBDAV_PATH#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Url WebDav:</label>
+				<label class="control-label"><#LANG_BAK_URL#> WebDav:</label>
 				<div class="col-lg-7"><input type="text" name="webdav_url" value="<#WEBDAV_URL#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Login WebDav:</label>
+				<label class="control-label"><#LANG_BAK_LOGIN#> WebDav:</label>
 				<div class="col-lg-7"><input type="text" name="webdav_login" value="<#WEBDAV_LOGIN#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Password WebDav:</label>
+				<label class="control-label"><#LANG_BAK_PASSWORD#> WebDav:</label>
 				<div class="col-lg-7"><input type="text" name="webdav_password" value="<#WEBDAV_PASSWORD#>" class="form-control"></div>
 			</div>
 		</div>
@@ -96,52 +93,52 @@
 		</div>
 		<div id="set_mailru">
 			<div class="form-group">
-				<label class="control-label">Path:</label>
+				<label class="control-label"><#LANG_BAK_PATH#>:</label>
 				<div class="col-lg-7"><input type="text" name="mailru_path" value="<#MAILRU_PATH#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Login Mail.ru:</label>
+				<label class="control-label"><#LANG_BAK_LOGIN#> Mail.ru:</label>
 				<div class="col-lg-7"><input type="text" name="mailru_login" value="<#MAILRU_LOGIN#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Password Mail.ru:</label>
+				<label class="control-label"><#LANG_BAK_PASSWORD#> Mail.ru:</label>
 				<div class="col-lg-7"><input type="text" name="mailru_password" value="<#MAILRU_PASSWORD#>" class="form-control"></div>
 			</div>
 		</div>
         <div id="set_ftp">
 			<div class="form-group">
-				<label class="control-label">Path:</label>
+				<label class="control-label"><#LANG_BAK_PATH#>:</label>
 				<div class="col-lg-7"><input type="text" name="ftp_path" value="<#FTP_PATH#>" class="form-control"></div>
 			</div>
             <div class="form-group">
-				<label class="control-label">Url ftp:</label>
+				<label class="control-label"><#LANG_BAK_URL#> FTP:</label>
 				<div class="col-lg-7"><input type="text" name="ftp_url" value="<#FTP_URL#>" class="form-control"></div>
 			</div>
 			
 			<div class="form-group">
-				<label class="control-label">Login:</label>
+				<label class="control-label"><#LANG_BAK_LOGIN#>:</label>
 				<div class="col-lg-7"><input type="text" name="ftp_login" value="<#FTP_LOGIN#>" class="form-control"></div>
 			</div>
 			<div class="form-group">
-				<label class="control-label">Password:</label>
+				<label class="control-label"><#LANG_BAK_PASSWORD#>:</label>
 				<div class="col-lg-7"><input type="text" name="ftp_password" value="<#FTP_PASSWORD#>" class="form-control"></div>
 			</div>
 		</div>
 		<div id="set_dropbox">
 			[#if DROPBOX_LOGIN==""#]
 			<div class="form-group">
-				<label class="control-label">Access code:</label>
+				<label class="control-label"><#LANG_BAK_ACCESS_CODE#>:</label>
 				<div class="col-lg-5"><input type="text" name="dropbox_code" value="" class="form-control"></div>
 				<div class="col-lg-2">
-				<a href="https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=nshoq07v5avv4o8" class="btn btn-info form-control" role="button" target="_blank">Get code</a>
+				<a href="https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=nshoq07v5avv4o8" class="btn btn-info form-control" role="button" target="_blank"><#LANG_BAK_GET_CODE#></a>
 				</div>
 			</div>
 			[#else#]
 			<div class="form-group">
-				<label class="control-label">Login:</label>
+				<label class="control-label"><#LANG_BAK_ACCOUNT#>:</label>
 				<div class="col-lg-5"> <#DROPBOX_LOGIN#></div>
 				<div class="col-lg-2">
-				<a href="?mode=connection_delete" class="btn btn-info form-control" role="button">Delete connection</a>
+				<a href="?mode=connection_delete" class="btn btn-info form-control" role="button"><#LANG_BAK_DELETE_CONNECTION#></a>
 				</div>
 			</div>
 			[#endif#]
@@ -150,7 +147,7 @@
 			OnSelectType ( document.getElementById('provider') );
 		</script> 
 		<div class="form-group">
-            <label class="control-label">Max count backups:</label>
+            <label class="control-label"><#LANG_BAK_MAX_COUNT#>:</label>
             <div class="col-lg-7">
             <input class="form-control" type="number" data-bv-integer-message="The value is not an integer" min="0" step="1" name="max_count" value="<#MAX_COUNT#>">
             </div>
@@ -170,11 +167,11 @@
     <br>
 	<fieldset>
 	    <div class="form-group">
-            <label class="control-label">Temporary folder for backup:</label>
+            <label class="control-label"><#LANG_BAK_TEMP_FOLDER#>:</label>
             <div class="col-lg-7"><input type="text" name="temp_backup_folder" value="<#TEMP_BACKUP_FOLDER#>" class="form-control"></div>
         </div>
         <div class="form-group">
-            <label class="control-label">Backup database:</label>
+            <label class="control-label"><#LANG_BAK_BACKUP_DATABASE#>:</label>
             <div class="controls"><input type="checkbox" name="backup_database" value="1"[#if BACKUP_DATABASE="1"#] checked[#endif#]></div>
         </div>
         <script type="text/javascript">
@@ -218,10 +215,10 @@
             };
         </script> 
         <div class="form-group">
-            <label class="control-label">Backup folders:</label>
-            <a class="btn btn-default" id="checkStandart" onclick="SelectStandart();"> Select Default </a>
-            <a class="btn btn-default" id="checkAll" onclick="SelectAll();"> Select All </a>
-            <a class="btn btn-default" id="uncheckAll" onclick="UnselectAll();"> Unselect All </a>
+            <label class="control-label"><#LANG_BAK_BACKUP_FOLDERS#>:</label>
+            <a class="btn btn-default" id="checkStandart" onclick="SelectStandart();"><#LANG_BAK_SELECT_DEFAULT#></a>
+            <a class="btn btn-default" id="checkAll" onclick="SelectAll();"><#LANG_BAK_SELECT_ALL#></a>
+            <a class="btn btn-default" id="uncheckAll" onclick="UnselectAll();"><#LANG_BAK_UNSELECT_ALL#></a>
         </div>
         <div class="form-group">
         <label class="control-label"></label>
@@ -247,7 +244,7 @@
         <br>
         <fieldset>
         <div class="form-group ">
-            <label class="control-label" for="inputTitle">Execute on created backup:</label>
+            <label class="control-label" for="inputTitle"><#LANG_BAK_NOTIFY_SCRIPT#>:</label>
             <div class="col-lg-5">
                 <select name="script_create_id" class="form-control [#if ERR_SCRIPT_ID#]alert-danger[#endif#]">
                     <option value="0">
@@ -267,7 +264,7 @@
 	<div id="panel_backups" class="tab-pane fade in">
 		<br>
 		<p>
-		<a href="?mode=backup_iframe" class="btn btn-default">Create Backup</a>&nbsp; Free space: <#FREESPACE#>
+		<a href="?mode=backup_iframe" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> <#LANG_BAK_CREATE#></a>&nbsp; <#LANG_BAK_FREESPACE#>: <#FREESPACE#>
 		</p> 
 		<table width=100% border=0><tr>
 		<td valign=top>
@@ -301,7 +298,7 @@
 		[#begin RESULT#]
 		<tr style="height:52px" class="hover_btn2">
 		 <td style="vertical-align:middle">
-		  <b>[#NAME#]</a></b>
+		  <span class="glyphicon glyphicon-file"></span> <b>[#NAME#]</a></b>
 		 </td>
 		 <td style="vertical-align:middle">
 		   [#CREATED#]
@@ -310,14 +307,14 @@
 		   [#SIZE#]
 		 </td>
 		[#if URL!=""#]
-			<td valign="top"><a href="[#URL#]" class="btn btn-default">Download</a></td> 
+			<td valign="top"><a href="[#URL#]" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span> <#LANG_BAK_DOWNLOAD#></a></td> 
 		[#else#]
 			<td colspan="1">&nbsp;</td>
 		[#endif#] 
 		 <td style="vertical-align:middle" width="1%" nowrap>
 		  <div style="width:120px">
 		  [#if "<#ACTION#>"=="admin"#]
-			<a href="?mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="Delete"><i class="glyphicon glyphicon-remove"></i></a>
+			<a href="?mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="<#LANG_DELETE#>"><i class="glyphicon glyphicon-remove"></i></a>
 		  [#endif ACTION#]
 		  </div>
 		 </td>
