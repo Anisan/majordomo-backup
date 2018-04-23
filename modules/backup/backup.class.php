@@ -420,7 +420,7 @@ function backupdatabase($filename)
         else
             $pathToMysqlDump = IsWindowsOS() ? SERVER_ROOT . "/server/mysql/bin/mysqldump" : "/usr/bin/mysqldump";
 
-        exec($pathToMysqlDump . " --user=" . DB_USER . " --password=" . DB_PASSWORD . " --no-create-db --add-drop-table --databases " . DB_NAME . ">" . $filename);
+        exec($pathToMysqlDump . " --user=" . DB_USER . " --password=" . DB_PASSWORD . " --lock-tables=false --no-create-db --add-drop-table --databases " . DB_NAME . ">" . $filename);
     }
  
 function copyTree($source, $destination, $over = 0, $patterns = 0)

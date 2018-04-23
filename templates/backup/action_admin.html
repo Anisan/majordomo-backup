@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="../templates/backup/bootstrap-select.min.css">
+<script src="../templates/backup/bootstrap-select.min.js"></script>
 [#if ERR_MSG!=""#]
 <div class="row">
     <div class="alert alert-danger col-md-8 col-md-offset-2" align="center">[#ERR_MSG#]</div>
@@ -52,13 +54,13 @@
 		<div class="form-group">
 			<label class="control-label col-lg-4"><#LANG_BAK_PROVIDER#>: </label>
 			<div class="col-lg-7">
-				<select name="provider" class="form-control" id="provider" onchange="OnSelectType(this)">
-					<option value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
-					<option value="1"[#if PROVIDER=="1"#] selected[#endif#]>WebDav</option>
+				<select name="provider" class="selectpicker form-control" id="provider" onchange="OnSelectType(this)">
+					<option data-content="<img src='../img/modules/backup.png' width='20' height='20'> Local" value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
+					<option data-content="<img src='../templates/backup/img/webdav.png' width='20' height='20'> WebDav" value="1"[#if PROVIDER=="1"#] selected[#endif#]>WebDav</option>
 					<!--option value="2"[#if PROVIDER=="2"#] selected[#endif#]>Google Drive</option-->
-					<option value="3"[#if PROVIDER=="3"#] selected[#endif#]>Cloud Mail.ru</option>
-					<option value="4"[#if PROVIDER=="4"#] selected[#endif#]>FTP</option>
-					<option value="5"[#if PROVIDER=="5"#] selected[#endif#]>Dropbox</option>
+					<option data-content="<img src='../templates/backup/img/CloudMailRu.png' width='20' height='20'> Cloud Mail.ru" value="3"[#if PROVIDER=="3"#] selected[#endif#]>Cloud Mail.ru</option>
+					<option data-content="<img src='../templates/backup/img/ftp.jpg' width='20' height='20'> FTP" value="4"[#if PROVIDER=="4"#] selected[#endif#]>FTP</option>
+					<option data-content="<img src='../templates/backup/img/Dropbox.png' width='20' height='20'> Dropbox" value="5"[#if PROVIDER=="5"#] selected[#endif#]>Dropbox</option>
 				</select>
 			</div>
 		</div>
