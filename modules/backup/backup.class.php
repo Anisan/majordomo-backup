@@ -269,122 +269,135 @@ function delete_backup($name) {
 function create_backup(&$out = false, $iframe = 0) {
     $state = "Unknow";
     $description = "";
-    
+
     $this->log("Working on backup");
     $provider = $this->getProvider();
     
-        if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
+    if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
-    $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
-    if ($backup_dir=="")
-        $backup_dir = ROOT;
-    $backup_dir_temp .= $backup_dir.'backup_temp'. DIRECTORY_SEPARATOR;
+    if ($iframe) $this->echonow("<b>Check settings </b>");
+    $this->log("BACKUP_DIRS = ".$this->config['BACKUP_DIRS']);
+    if ($this->config['BACKUP_DIRS']=="")
+    {
+        if ($iframe) $this->echonow("Set backup directory.<br/>", 'red');
+        $state = "Error";
+        $description = "Set backup directory.";
+    }
+    else
+    {
+        if ($iframe) $this->echonow("Ok<br/>", 'green');
+        $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
+        if ($backup_dir=="")
+            $backup_dir = ROOT;
+        $backup_dir_temp .= $backup_dir.'backup_temp'. DIRECTORY_SEPARATOR;
+        
+        $file = $backup_dir."backup";
+        $file .= IsWindowsOS() ? '.tar' : '.tgz';
     
-    $file = $backup_dir."backup";
-    $file .= IsWindowsOS() ? '.tar' : '.tgz';
-    
-    if ($iframe) $this->echonow("Create temp directory $backup_dir_temp ... ");
-        
-    if (mkdir($backup_dir_temp, 0777)) {
-        if ($iframe) $this->echonow(" OK<br/>", 'green');
-        
-        $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
-        foreach($sel_dirs as $dir) {
-            if ($dir == "backup_temp") continue;
-            $this->log("Copy dir ".$dir);
-        
-            if ($iframe) $this->echonow("Backup $dir ...");
-            if (!Is_Dir(ROOT . $dir))
-                $this->copyFile(ROOT . $dir, $backup_dir_temp . $dir );
-            else
-                $this->copyTree(ROOT . $dir, $backup_dir_temp . $dir );
-            if ($iframe) $this->echonow(" OK<br/>", 'green');
-        }
-        
-        if ($this->config['BACKUP_DATABASE'])
-        {
-            $this->log("Backup datadase");
-            if ($iframe) $this->echonow("Backup datadase ...");
-            $this->backupdatabase($backup_dir_temp . 'dump.sql');
-            if ($iframe) $this->echonow(" OK<br/>", 'green');
-        }
-        
-        if ($iframe) $this->echonow("Packing $file ... ");
-        $this->log("Packing $file");
-        if (IsWindowsOS()) {
-            $result = exec('tar.exe --strip-components=2 -C ./backup_temp/ -cvf ' . $file . ' ./');
-            $new_name = str_replace('.tar', '.tar.gz', $file);
-            $result = exec('gzip.exe ' . $file);
-            if (file_exists($new_name)) {
-                $file = $new_name;
-            }
-        } else {
-            chdir($backup_dir_temp);
-            exec('tar cvzf ' . $file . ' .');
-        }
-        if (file_exists($file)) {
-            if ($iframe) $this->echonow(" OK<br/>", 'green');
-        
-            if ($iframe) $this->echonow("Remove temp directory $backup_dir_temp ... ");
-            $this->removeTree($backup_dir_temp);
-            if ($iframe) $this->echonow(" OK<br/>", 'green');
+        if ($iframe) $this->echonow("Create temp directory $backup_dir_temp ... ");
             
-            $this->log("Save to storage");
-            if ($iframe) $this->echonow("Save to storage ... ");
-            $backupName .= "backup_" . date("YmdHis");
-            $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-            $provider->addBackup($file,$backupName);
-            unlink($file);
-            if ($provider->error == "")
+        if (mkdir($backup_dir_temp, 0777)) {
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+            $sel_dirs = explode(',',$this->config['BACKUP_DIRS']);
+            foreach($sel_dirs as $dir) {
+                if ($dir == "backup_temp") continue;
+                $this->log("Copy dir ".$dir);
+            
+                if ($iframe) $this->echonow("Backup $dir ...");
+                if (!Is_Dir(ROOT . $dir))
+                    $this->copyFile(ROOT . $dir, $backup_dir_temp . $dir );
+                else
+                    $this->copyTree(ROOT . $dir, $backup_dir_temp . $dir );
+                if ($iframe) $this->echonow(" OK<br/>", 'green');
+            }
+            
+            if ($this->config['BACKUP_DATABASE'])
             {
+                $this->log("Backup datadase");
+                if ($iframe) $this->echonow("Backup datadase ...");
+                $this->backupdatabase($backup_dir_temp . 'dump.sql');
+                if ($iframe) $this->echonow(" OK<br/>", 'green');
+            }
+            
+            if ($iframe) $this->echonow("Packing $file ... ");
+            $this->log("Packing $file");
+            if (IsWindowsOS()) {
+                $cmd = 'tar.exe --strip-components=2 -C '.$backup_dir_temp.' -cvf ' . $file . ' ./';
+                $this->log($cmd);
+                $result = exec($cmd);
+                $new_name = str_replace('.tar', '.tar.gz', $file);
+                $result = exec('gzip.exe ' . $file);
+                if (file_exists($new_name)) {
+                    $file = $new_name;
+                }
+            } else {
+                chdir($backup_dir_temp);
+                exec('tar cvzf ' . $file . ' .');
+            }
+            if (file_exists($file)) {
+                if ($iframe) $this->echonow(" OK<br/>", 'green');
+            
+                if ($iframe) $this->echonow("Remove temp directory $backup_dir_temp ... ");
+                $this->removeTree($backup_dir_temp);
                 if ($iframe) $this->echonow(" OK<br/>", 'green');
                 
-                $this->log("Delete old backups");
-                if ($iframe) $this->echonow("Delete old backups ... ");
-                $backups = $provider->getList();
-                if ($backups)
+                $this->log("Save to storage");
+                if ($iframe) $this->echonow("Save to storage ... ");
+                $backupName .= "backup_" . date("YmdHis");
+                $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
+                $provider->addBackup($file,$backupName);
+                unlink($file);
+                if ($provider->error == "")
                 {
-                    if (count($backups) > $this->config['MAX_COUNT'])
+                    if ($iframe) $this->echonow(" OK<br/>", 'green');
+                    
+                    $this->log("Delete old backups");
+                    if ($iframe) $this->echonow("Delete old backups ... ");
+                    $backups = $provider->getList();
+                    if ($backups)
                     {
-                        usort($backups, function($a1, $a2) {
-                            $v1 = strtotime($a1['CREATED']);
-                            $v2 = strtotime($a2['CREATED']);
-                            return $v1 - $v2; // $v2 - $v1 to reverse direction
-                        });
-                        $need_delete = count($backups) - $this->config['MAX_COUNT'];
-                        for ($i = 0; $i < $need_delete; $i++) {
-                            $this->log("Delete old backup - ".$backups[$i]['NAME']);
-                            $provider->deleteBackup($backups[$i]['NAME']);
+                        if (count($backups) > $this->config['MAX_COUNT'])
+                        {
+                            usort($backups, function($a1, $a2) {
+                                $v1 = strtotime($a1['CREATED']);
+                                $v2 = strtotime($a2['CREATED']);
+                                return $v1 - $v2; // $v2 - $v1 to reverse direction
+                            });
+                            $need_delete = count($backups) - $this->config['MAX_COUNT'];
+                            for ($i = 0; $i < $need_delete; $i++) {
+                                $this->log("Delete old backup - ".$backups[$i]['NAME']);
+                                $provider->deleteBackup($backups[$i]['NAME']);
+                            }
                         }
                     }
+                    if ($iframe) $this->echonow(" OK<br/>", 'green');
+                    $this->log("End backup");
+                    $state = "Ok";
+                    $description = "";
+                    if ($iframe) $this->echonow("<b>Backup end</b><br/>");
                 }
-                if ($iframe) $this->echonow(" OK<br/>", 'green');
-                $this->log("End backup");
-                $state = "Ok";
-                $description = "";
-                if ($iframe) $this->echonow("<b>Backup end</b><br/>");
+                else
+                {
+                    if ($iframe) $this->echonow(" Error<br/>", 'red');
+                    $this->log($provider->error);
+                    $state = "Error";
+                    $description = $provider->error;
+                }
             }
             else
             {
                 if ($iframe) $this->echonow(" Error<br/>", 'red');
-                $this->log($provider->error);
                 $state = "Error";
-                $description = $provider->error;
+                $description = "Error packing";
             }
+            
         }
         else
         {
             if ($iframe) $this->echonow(" Error<br/>", 'red');
             $state = "Error";
-            $description = "Error packing";
+            $description = "Error create temp directory ".$backup_dir;
         }
-        
-    }
-    else
-    {
-        if ($iframe) $this->echonow(" Error<br/>", 'red');
-        $state = "Error";
-        $description = "Error create temp directory ".$backup_dir;
     }
     
     if ($this->config['SCRIPT_CREATE_ID']) {
