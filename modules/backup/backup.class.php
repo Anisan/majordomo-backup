@@ -632,7 +632,7 @@ function log($message) {
         if(!is_dir(ROOT . 'debmes')) {
             mkdir(ROOT . 'debmes', 0777);
         }
-        $today_file = ROOT . 'debmes/log_' . date('Y-m-d') . '-backup.php.txt';
+        $today_file = ROOT . 'cms/debmes/log_' . date('Y-m-d') . '-backup.php.txt';
         $data = date("H:i:s")." " . $message . "\n";
         file_put_contents($today_file, $data, FILE_APPEND | LOCK_EX);
 }
