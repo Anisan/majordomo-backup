@@ -194,10 +194,12 @@
             {
                 $(".dir").prop('checked', true);
                 $("#backup_temp").prop( "checked", false );
+                OnChangeChecked();
             };
             function UnselectAll()
             {
                 $(".dir").prop('checked', false);
+                OnChangeChecked();
             };
             function SelectStandart()
             {
@@ -214,6 +216,7 @@
                 $("#php").prop( "checked", true );
                 $("#config.php").prop( "checked", true );
                 $("#cms").prop( "checked", true );
+                OnChangeChecked();
             };
         </script> 
         <div class="form-group">
