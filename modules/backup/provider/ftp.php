@@ -4,6 +4,7 @@ require_once("IProvider.php");
 class FtpBackup implements IProvider
 {
     public $error;
+    public $supportUpload = 1;
     
     function __construct($ftp_server, $login, $password, $path, $logger)
     {
@@ -90,5 +91,19 @@ class FtpBackup implements IProvider
         }
     }
 	
+    public function uploadBackup($backup, $file)
+    {
+        if ($this->error) return;
+        $filename = $backup;
+        if (ftp_chdir($this->conn_id, $this->path) == false) {
+            $this->logger->log('Change dir failed:'. $this->path);
+            $this->error='Change dir failed:'. $this->path;
+            return;
+        }
+        if (!ftp_get($this->conn_id, $file, $this->path."/".$backup, FTP_BINARY)) {
+            $this->logger->log('Upload failed:'. $this->path.$backup);
+            $this->error='Upload failed:'. $this->path.$backup;
+        } 
+    }
 
 }

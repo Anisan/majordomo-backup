@@ -4,6 +4,7 @@ require_once("IProvider.php");
 class LocalBackup implements IProvider
 {
     public $error;
+    public $supportUpload = 1;
     
     function __construct($path, $logger)
     {
@@ -18,8 +19,8 @@ class LocalBackup implements IProvider
     
     public function getList()
     {
-        $pattern = $this->path."/*.";
-        $pattern .= IsWindowsOS() ? 'tar' : 'tgz';
+        $pattern = $this->path."/*";
+        $pattern .= IsWindowsOS() ? '.tar' : '.tgz';
         $res = glob($pattern);
         if ($res) { 
             $files = array();
@@ -45,6 +46,11 @@ class LocalBackup implements IProvider
         $filename = $this->path ."/". $backup;
         echo $filename;
         unlink($filename);
+    }
+    
+    public function uploadBackup($backup, $file)
+    {
+        @copy($this->path."/".$backup, $file);
     }
 	
 

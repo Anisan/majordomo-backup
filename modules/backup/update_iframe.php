@@ -22,7 +22,13 @@ echo "<body>";
 
 $out=array();
 
-$res=$sv->create_backup($out, 1);
+$cmd = $_GET['command'];
+$name = $_GET['backup'];
+
+if ($cmd == 'create')
+    $res=$sv->create_backup($out, 1);
+if ($cmd == 'restore')
+    $res=$sv->restore_backup($name, $out, 1);
 $sv->echonow($res);
 if ($res) {
    $sv->echonow("Redirecting to main page...");

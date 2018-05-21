@@ -6,7 +6,8 @@ require 'CloudMailRu.php';
 class MailRuBackup implements IProvider
 {
     public $error;
-    
+    public $supportUpload = 0;
+        
     function __construct($login, $password, $path, $logger)
     {
         $this->path = $path;
@@ -56,6 +57,11 @@ class MailRuBackup implements IProvider
         $filename = $this->path ."/". $backup;
         $res = $this->cloud->removeFile_from_cloud($filename);
         $this->logger->debug("deleteBackup - ".$res);
+    }
+    
+    public function uploadBackup($backup, $file)
+    {
+        $this->logger->debug("uploadBackup - not supported");
     }
 }
 

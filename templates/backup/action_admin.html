@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="../templates/backup/bootstrap-select.min.css">
-<script src="../templates/backup/bootstrap-select.min.js"></script>
 [#if ERR_MSG!=""#]
 <div class="row">
     <div class="alert alert-danger col-md-8 col-md-offset-2" align="center">[#ERR_MSG#]</div>
@@ -13,7 +12,7 @@
 [#endif OK_MSG#]
 
 [#if MODE="backup_iframe"#]
-<iframe src="<#ROOTHTML#>modules/backup/update_iframe.php" width="100%" height="600" frameborder=0></iframe>
+<iframe src="<#ROOTHTML#>modules/backup/update_iframe.php?command=<#COMMAND#>&backup=<#BACKUP#>" width="100%" height="800"  frameborder=0 class="myIframe"></iframe>
 [#else MODE#]
 
 <form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
@@ -54,7 +53,7 @@
 		<div class="form-group">
 			<label class="control-label col-lg-4"><#LANG_BAK_PROVIDER#>: </label>
 			<div class="col-lg-7">
-				<select name="provider" class="selectpicker form-control" id="provider" onchange="OnSelectType(this)">
+				<select name="provider" class="selectpicker form-control" id="provider" onchange="OnSelectType(this);">
 					<option data-content="<img src='../img/modules/backup.png' width='20' height='20'> Local" value="0"[#if PROVIDER=="0"#] selected[#endif#]>Local</option>
 					<option data-content="<img src='../templates/backup/img/webdav.png' width='20' height='20'> WebDav" value="1"[#if PROVIDER=="1"#] selected[#endif#]>WebDav</option>
 					<!--option value="2"[#if PROVIDER=="2"#] selected[#endif#]>Google Drive</option-->
@@ -269,7 +268,7 @@
 	<div id="panel_backups" class="tab-pane fade in">
 		<br>
 		<p>
-		<a href="?mode=backup_iframe" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> <#LANG_BAK_CREATE#></a>&nbsp; <#LANG_BAK_FREESPACE#>: <#FREESPACE#>
+		<a href="?mode=backup_iframe&command=create" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> <#LANG_BAK_CREATE#></a>&nbsp; <#LANG_BAK_FREESPACE#>: <#FREESPACE#>
 		</p> 
 		<table width=100% border=0><tr>
 		<td valign=top>
@@ -317,8 +316,11 @@
 			<td colspan="1">&nbsp;</td>
 		[#endif#] 
 		 <td style="vertical-align:middle" width="1%" nowrap>
-		  <div style="width:120px">
+          <div style="width:120px">
 		  [#if "<#ACTION#>"=="admin"#]
+            [#if "<#RESTORE#>"=="1"#]
+			<a href="?mode=backup_iframe&command=restore&backup=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="<#LANG_RESTORE#>"><i class="glyphicon glyphicon-refresh"></i></a>
+            [#endif#] 
 			<a href="?mode=delete_backup&name=[#NAME#]" onClick="return confirm('Are you sure? Please confirm.')" class="btn btn-default" title="<#LANG_DELETE#>"><i class="glyphicon glyphicon-remove"></i></a>
 		  [#endif ACTION#]
 		  </div>
@@ -357,7 +359,9 @@
 </form>
 <script type="text/javascript">
 $('#tab a:first').tab('show');
+$('.myIframe').css('height', $(window).height()+'px');
 </script>
+<script src="../templates/backup/bootstrap-select.min.js"></script>
 
 [#endif MODE#]
 

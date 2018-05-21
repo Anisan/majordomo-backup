@@ -7,6 +7,7 @@ class DropboxBackup implements IProvider
 {
     public $error;
     private $dropbox;
+    public $supportUpload = 0;
     
     function __construct($account, $token, $logger)
     {
@@ -83,6 +84,11 @@ class DropboxBackup implements IProvider
         $filename = "/". $backup;
         $res = $this->dropbox->Delete($filename);
         $this->logger->debug("deleteBackup - ".json_encode($res));
+    }
+    
+    public function uploadBackup($backup, $file)
+    {
+        $this->logger->debug("uploadBackup - not supported");
     }
 }
 

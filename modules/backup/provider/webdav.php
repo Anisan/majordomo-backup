@@ -4,7 +4,8 @@ require_once("IProvider.php");
 class WebDavBackup implements IProvider
 {
     public $error;
-    
+    public $supportUpload = 1;
+        
     function __construct($url, $login, $password, $path, $logger)
     {
         $this->url = $url;
@@ -110,6 +111,18 @@ class WebDavBackup implements IProvider
         $this->logger->debug("deleteBackup - ".$result);
         //echo print_r($result);
     }
-	
-
+    
+    public function uploadBackup($backup, $file)
+    {
+        $result = $this->client->get($this->path."/".$backup);
+        if ($result->code != 200)
+        {
+            $this->error = $result->response;
+            $this->logger->log("uploadBackup - ".$result->code. " - " .$result->response);
+            return;
+        }
+        $Handle = fopen($file, 'w');
+        fwrite($Handle, $result->response);
+        fclose($Handle);
+    }
 }

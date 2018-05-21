@@ -99,6 +99,11 @@ function run() {
   $out['EDIT_MODE']=$this->edit_mode;
   $out['MODE']=$this->mode;
   $out['ACTION']=$this->action;
+  global $command;
+  global $backup;
+  $out['COMMAND']=$command;
+  $out['BACKUP']=$backup;
+  
   $this->data=$out;
   $p=new parser(DIR_TEMPLATES.$this->name."/".$this->name.".html", $this->data, $this);
   $this->result=$p->result;
@@ -171,10 +176,6 @@ function admin(&$out) {
         global $name;
         $this->delete_backup($name);
         $this->redirect("?");
-    }
-    if($this->view_mode == 'create_backup') {
-        //$this->create_backup($out);
-        //$this->redirect("?");
     }
     if($this->mode == 'connection_delete') {
         $this->config['DROPBOX_TOKEN']="";
@@ -259,6 +260,7 @@ function get_backups(&$out) {
         }
     }
     $out["ERR_MSG"] = $provider->error;
+    $out["RESTORE"] = $provider->supportUpload;
 }
  
 function delete_backup($name) {
@@ -289,11 +291,18 @@ function create_backup(&$out = false, $iframe = 0) {
         $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
         if ($backup_dir=="")
             $backup_dir = ROOT;
-        $backup_dir_temp .= $backup_dir.'backup_temp'. DIRECTORY_SEPARATOR;
+        $backup_dir_temp = $backup_dir.'backup_temp';
+        if (is_dir($backup_dir_temp )) { 
+           if ($iframe) $this->echonow("Remove old temp directory $backup_dir_temp ... ");
+           $this->removeTree($backup_dir_temp);
+           if ($iframe) $this->echonow(" OK<br/>", 'green');
+        }
+        $backup_dir_temp .= DIRECTORY_SEPARATOR;
         
         $file = $backup_dir."backup";
         $file .= IsWindowsOS() ? '.tar' : '.tgz';
     
+        
         if ($iframe) $this->echonow("Create temp directory $backup_dir_temp ... ");
             
         if (mkdir($backup_dir_temp, 0777)) {
@@ -411,6 +420,118 @@ function create_backup(&$out = false, $iframe = 0) {
         return "Ok";
 }
 
+function restore_backup($backup, &$out = false, $iframe = 0) {
+    $state = "Unknow";
+    $description = "";
+    $this->log("Working on restore");
+    if ($iframe) $this->echonow("<b>Working on restore.</b><br/>");
+
+    $provider = $this->getProvider();
+    
+    $backup_dir = $this->config['TEMP_BACKUP_FOLDER'];
+    if ($backup_dir=="")
+        $backup_dir = ROOT;
+    $backup_dir_temp = $backup_dir.'backup_temp';
+    if (is_dir($backup_dir_temp)) { 
+        if ($iframe) $this->echonow("Remove old temp directory $backup_dir_temp ... ");
+        $this->removeTree($backup_dir_temp);
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+    }
+    $backup_dir_temp .= DIRECTORY_SEPARATOR;
+        
+    $file = $backup_dir."backup";
+    $file .= IsWindowsOS() ? '.tar.gz' : '.tgz';
+
+    $this->log("Upload backup file $backup to $file");
+        
+    if ($iframe) $this->echonow("Upload backup file $backup to $file");
+    
+    $provider->uploadBackup($backup,$file);
+    if (file_exists($file)) {
+        if ($iframe) $this->echonow(" OK<br/>", 'green');
+
+        if ($iframe) $this->echonow("Create temp directory $backup_dir_temp ... ");
+            
+        if (mkdir($backup_dir_temp, 0777)) {
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+            
+            $this->log("Unpack file $file");
+            
+            if ($iframe) $this->echonow("Unpack file $file ...");
+            
+            chdir($backup_dir);
+            if (IsWindowsOS()) {
+                $cmd = ROOT.'gunzip.exe ' . $file;
+                $this->log($cmd);
+                $result = exec($cmd);
+                $this->log($result);
+                $cmd = ROOT.'tar.exe -xf ' . str_replace('.tar.gz', '.tar', $file) . ' -C '.$backup_dir_temp;
+                $this->log($cmd);
+                $result = exec($cmd);
+                $this->log($result);
+            } else {
+                chdir($backup_dir_temp);
+                exec('tar xf ' . $file . ' -C '.$backup_dir_temp);
+            }
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+            
+            unlink($file);
+                
+            //copy files
+            if ($iframe) $this->echonow("Updating files ... ");
+            $this->copyTree($backup_dir_temp, ROOT, 1); // restore all files
+            if ($iframe) $this->echonow(" OK<br/> ", 'green');
+
+            // restore database
+            $db_filename= $backup_dir_temp . 'dump.sql';
+            if (file_exists($db_filename)) {
+                if ($iframe) $this->echonow("Restoring database from $db_filename ... ");
+                $this->restoredatabase($db_filename);
+                if ($iframe) $this->echonow(" OK<br/> ", 'green');
+                unlink(ROOT. 'dump.sql');
+            }
+            
+            if ($iframe) $this->echonow("Remove temp directory $backup_dir_temp ... ");
+            $this->removeTree($backup_dir_temp);
+            if ($iframe) $this->echonow(" OK<br/>", 'green');
+            
+            if ($iframe) $this->echonow("Re-installing modules ... ");
+            // code restore
+            $source = ROOT . 'modules';
+            if ($dir = @opendir($source)) {
+                while (($file = readdir($dir)) !== false) {
+                    if (Is_Dir($source . "/" . $file) && ($file != '.') && ($file != '..')) { // && !file_exists($source."/".$file."/installed")
+                        @unlink(ROOT . "modules/" . $file . "/installed");
+                    }
+                }
+            }
+            @unlink(ROOT . "modules/control_modules/installed");
+            if ($iframe) $this->echonow(" OK<br/> ", 'green');
+            
+            if ($iframe) $this->echonow("Rebooting system ... ");
+            @SaveFile(ROOT . 'reboot', 'updated');
+            if ($iframe) $this->echonow(" OK<br/> ", 'green');
+            $state = "Ok";
+        }
+        else
+        {
+            if ($iframe) $this->echonow(" Error<br/>", 'red');
+            $state = "Error";
+            $description = "Error create temp directory ".$backup_dir;
+        }
+    }
+    else
+    {
+       if ($iframe) $this->echonow(" Error<br/>", 'red');
+       $state = "Error";
+       $description = "Error upload";
+    }
+    
+    
+    if ($state == "Ok")
+        return "Ok";
+}
+
 
 function echonow($msg, $color = '')
     {
@@ -435,13 +556,20 @@ function backupdatabase($filename)
 
         exec($pathToMysqlDump . " --user=" . DB_USER . " --password=" . DB_PASSWORD . " --lock-tables=false --no-create-db --add-drop-table --databases " . DB_NAME . ">" . $filename);
     }
- 
+ function restoredatabase($filename)
+    {
+        $mysql_path = (substr(php_uname(), 0, 7) == "Windows") ? SERVER_ROOT . "/server/mysql/bin/mysql" : 'mysql';
+        $mysqlParam = " -u " . DB_USER;
+        if (DB_PASSWORD != '') $mysqlParam .= " -p" . DB_PASSWORD;
+        $mysqlParam .= " " . DB_NAME . " <" . $filename;
+        exec($mysql_path . $mysqlParam);
+        SQLExec("DELETE FROM cached_values");
+        setGlobal('cycle_mainRun',time());
+    }
+
 function copyTree($source, $destination, $over = 0, $patterns = 0)
     {
-
-
         $res = 1;
-
         //Remove last slash '/' in source and destination - slash was added when copy
         $source = preg_replace("#/$#", "", $source);
         $destination = preg_replace("#/$#", "", $destination);
@@ -455,7 +583,6 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
                 return 0; // cannot create destination path
             }
         }
-
 
         if ($dir = @opendir($source)) {
             while (($file = readdir($dir)) !== false) {
@@ -481,7 +608,6 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
             closedir($dir);
         }
         return $res;
-
     }
 
     function copyFile($source, $destination)
@@ -498,14 +624,11 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
             }
         }
         return copy($source, $destination);
-
     }
 
     function copyFiles($source, $destination, $over = 0, $patterns = 0)
     {
-
         $res = 1;
-
         if (!Is_Dir($source)) {
             return 0; // cannot create destination path
         }
@@ -515,7 +638,6 @@ function copyTree($source, $destination, $over = 0, $patterns = 0)
                 return 0; // cannot create destination path
             }
         }
-
 
         if ($dir = @opendir($source)) {
             while (($file = readdir($dir)) !== false) {
