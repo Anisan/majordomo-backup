@@ -7,7 +7,7 @@ class DropboxBackup implements IProvider
 {
     public $error;
     private $dropbox;
-    public $supportUpload = 0;
+    public $supportUpload = 1;
     
     function __construct($account, $token, $logger)
     {
@@ -69,12 +69,12 @@ class DropboxBackup implements IProvider
         return $files;
     }
     
-    public function addBackup($file, $backup)
+    public function uploadBackup($file, $backup)
     {
         if (!$this->dropbox->IsAuthorized()) return;
         
         $res = $this->dropbox->UploadFile($file,$backup);
-        $this->logger->debug("addBackup - ".json_encode($res));
+        $this->logger->debug("uploadBackup - ".json_encode($res));
     }
     
     public function deleteBackup($backup)
@@ -86,9 +86,12 @@ class DropboxBackup implements IProvider
         $this->logger->debug("deleteBackup - ".json_encode($res));
     }
     
-    public function uploadBackup($backup, $file)
+    public function downloadBackup($backup, $file)
     {
-        $this->logger->debug("uploadBackup - not supported");
+        if (!$this->dropbox->IsAuthorized()) return;
+        $filename = "/". $backup;
+        $res = $this->dropbox->DownloadFile($filename,$file);
+        $this->logger->debug("downloadBackup - ".json_encode($res));
     }
 }
 

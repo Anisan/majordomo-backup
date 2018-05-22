@@ -83,17 +83,17 @@ class WebDavBackup implements IProvider
         }
     }
     
-    public function addBackup($file, $backup)
+    public function uploadBackup($file, $backup)
     {
         $result = $this->client->put($this->path."/".$backup,$file);
         if ($result->code != 201)
         {
             $this->error = $result->response;
-            $this->logger->log("addBackup - ".$result->code. " - " .$result->response);
+            $this->logger->log("uploadBackup - ".$result->code. " - " .$result->response);
             return;
         }
         $result = $result->getResponseArray();
-        $this->logger->debug("addBackup - ".$result);
+        $this->logger->debug("uploadBackup - ".$result);
         //echo print_r($result);
     }
     
@@ -112,13 +112,13 @@ class WebDavBackup implements IProvider
         //echo print_r($result);
     }
     
-    public function uploadBackup($backup, $file)
+    public function downloadBackup($backup, $file)
     {
         $result = $this->client->get($this->path."/".$backup);
         if ($result->code != 200)
         {
             $this->error = $result->response;
-            $this->logger->log("uploadBackup - ".$result->code. " - " .$result->response);
+            $this->logger->log("downloadBackup - ".$result->code. " - " .$result->response);
             return;
         }
         $Handle = fopen($file, 'w');

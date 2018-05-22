@@ -59,7 +59,7 @@ class FtpBackup implements IProvider
         return $files;
     }
     
-    public function addBackup($file, $backup)
+    public function uploadBackup($file, $backup)
     {
         if ($this->error) return;
         
@@ -91,7 +91,7 @@ class FtpBackup implements IProvider
         }
     }
 	
-    public function uploadBackup($backup, $file)
+    public function downloadBackup($backup, $file)
     {
         if ($this->error) return;
         $filename = $backup;

@@ -354,7 +354,7 @@ function create_backup(&$out = false, $iframe = 0) {
                 if ($iframe) $this->echonow("Save to storage ... ");
                 $backupName .= "backup_" . date("YmdHis");
                 $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
-                $provider->addBackup($file,$backupName);
+                $provider->uploadBackup($file,$backupName);
                 unlink($file);
                 if ($provider->error == "")
                 {
@@ -444,9 +444,9 @@ function restore_backup($backup, &$out = false, $iframe = 0) {
 
     $this->log("Upload backup file $backup to $file");
         
-    if ($iframe) $this->echonow("Upload backup file $backup to $file");
+    if ($iframe) $this->echonow("Upload backup file $backup to $file...");
     
-    $provider->uploadBackup($backup,$file);
+    $provider->downloadBackup($backup,$file);
     if (file_exists($file)) {
         if ($iframe) $this->echonow(" OK<br/>", 'green');
 

@@ -46,10 +46,10 @@ class MailRuBackup implements IProvider
         return $files;
     }
     
-    public function addBackup($file, $backup)
+    public function uploadBackup($file, $backup)
     {
         $res = $this->cloud->loadFile($file,$this->path."/".$backup);
-        $this->logger->debug("addBackup - ".$res);
+        $this->logger->debug("uploadBackup - ".$res);
     }
     
     public function deleteBackup($backup)
@@ -59,9 +59,9 @@ class MailRuBackup implements IProvider
         $this->logger->debug("deleteBackup - ".$res);
     }
     
-    public function uploadBackup($backup, $file)
+    public function downloadBackup($backup, $file)
     {
-        $this->logger->debug("uploadBackup - not supported");
+        $this->logger->debug("downloadBackup - not supported");
     }
 }
 

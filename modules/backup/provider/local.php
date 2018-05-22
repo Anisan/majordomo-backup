@@ -36,7 +36,7 @@ class LocalBackup implements IProvider
         }
     }
     
-    public function addBackup($file, $backup)
+    public function uploadBackup($file, $backup)
     {
         @copy($file, $this->path."/".$backup);
     }
@@ -48,7 +48,7 @@ class LocalBackup implements IProvider
         unlink($filename);
     }
     
-    public function uploadBackup($backup, $file)
+    public function downloadBackup($backup, $file)
     {
         @copy($this->path."/".$backup, $file);
     }
