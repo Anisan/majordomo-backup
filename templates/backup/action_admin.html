@@ -361,7 +361,15 @@
 $('#tab a:first').tab('show');
 $('.myIframe').css('height', $(window).height()+'px');
 </script>
-<script src="../templates/backup/bootstrap-select.min.js"></script>
+<script>
+var script = document.createElement('script');
+script.src = "../templates/backup/bootstrap-select.min.js"
+document.body.appendChild(script);
+script.onload = function() {
+	// после подгрузки js-файла перерисуем элемент select
+	$('.selectpicker').selectpicker('render');
+}
+</script> 
 
 [#endif MODE#]
 
