@@ -275,6 +275,10 @@ function create_backup(&$out = false, $iframe = 0) {
     $this->log("Working on backup");
     $provider = $this->getProvider();
     
+    set_time_limit(1800);
+    $this->log("max_execution_time=".ini_get('max_execution_time'));
+
+    
     if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
     if ($iframe) $this->echonow("<b>Check settings </b>");
@@ -350,6 +354,8 @@ function create_backup(&$out = false, $iframe = 0) {
                 $this->removeTree($backup_dir_temp);
                 if ($iframe) $this->echonow(" OK<br/>", 'green');
                 
+                $description = $this->format_filesize(filesize($file));
+                
                 $this->log("Save to storage");
                 if ($iframe) $this->echonow("Save to storage ... ");
                 $backupName .= "backup_" . date("YmdHis");
@@ -382,7 +388,6 @@ function create_backup(&$out = false, $iframe = 0) {
                     if ($iframe) $this->echonow(" OK<br/>", 'green');
                     $this->log("End backup");
                     $state = "Ok";
-                    $description = "";
                     if ($iframe) $this->echonow("<b>Backup end</b><br/>");
                 }
                 else
