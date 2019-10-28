@@ -273,11 +273,11 @@ function create_backup(&$out = false, $iframe = 0) {
     $description = "";
 
     $this->log("Working on backup");
-    $provider = $this->getProvider();
     
     set_time_limit(1800);
     $this->log("max_execution_time=".ini_get('max_execution_time'));
 
+    $this->getConfig();
     
     if ($iframe) $this->echonow("<b>Working on backup.</b><br/>");
     
@@ -360,6 +360,7 @@ function create_backup(&$out = false, $iframe = 0) {
                 if ($iframe) $this->echonow("Save to storage ... ");
                 $backupName .= "backup_" . date("YmdHis");
                 $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
+                $provider = $this->getProvider();
                 $provider->uploadBackup($file,$backupName);
                 unlink($file);
                 if ($provider->error == "")
@@ -717,32 +718,32 @@ function getProvider() {
     switch ($this->config['PROVIDER']) {
             case 0: // local
                 $this->log("Provider - LocalBackup");
-                require_once("./modules/backup/provider/local.php");
+                require_once(ROOT . "modules/backup/provider/local.php");
                 $provider = new LocalBackup($this->config['LOCAL_PATH'],$this);
                 break;
             case 1: // WebDav
                 $this->log("Provider - WebDavBackup");
-                require_once("./modules/backup/provider/webdav.php");
+                require_once(ROOT . "modules/backup/provider/webdav.php");
                 $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH'],$this);
                 break;
             case 2: // GDrive
                 $this->log("Provider - GdriveBackup");
-                require_once("./modules/backup/provider/gdrive.php");
+                require_once(ROOT . "modules/backup/provider/gdrive.php");
                 $provider = new GdriveBackup();
                 break;
             case 3: // Cloud Mail.ru
                 $this->log("Provider - MailRuBackup");
-                require_once("./modules/backup/provider/mailru.php");
+                require_once(ROOT . "modules/backup/provider/mailru.php");
                 $provider = new MailRuBackup($this->config['MAILRU_LOGIN'],$this->config['MAILRU_PASSWORD'],$this->config['MAILRU_PATH'],$this);
                 break;
             case 4: // FTP
                 $this->log("Provider - FTP");
-                require_once("./modules/backup/provider/ftp.php");
+                require_once(ROOT . "modules/backup/provider/ftp.php");
                 $provider = new FtpBackup($this->config['FTP_URL'],$this->config['FTP_LOGIN'],$this->config['FTP_PASSWORD'],$this->config['FTP_PATH'],$this);
                 break;
             case 5: // Dropbox
                 $this->log("Provider - Dropbox");
-                require_once("./modules/backup/provider/Dropbox.php");
+                require_once(ROOT . "modules/backup/provider/Dropbox.php");
                 $provider = new DropboxBackup($this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
                 break;
     }
