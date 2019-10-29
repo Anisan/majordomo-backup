@@ -13,10 +13,10 @@ class WebDavBackup implements IProvider
         $this->password = $password;
         $this->path = $path;
         $this->logger = $logger;
-        require_once(DIR_MODULES . 'backup/provider/WebDav/Config.php');
+        require_once(ROOT . 'modules/backup/provider/WebDav/Config.php');
         $config = new Config($this->url,$this->login,$this->password);
-        require_once(DIR_MODULES . 'backup/provider/WebDav/Client.php');
-        require_once(DIR_MODULES . 'backup/provider/WebDav/Result.php');
+        require_once(ROOT . 'modules/backup/provider/WebDav/Client.php');
+        require_once(ROOT . 'modules/backup/provider/WebDav/Result.php');
         $this->client = new Client($config);
     }
     
