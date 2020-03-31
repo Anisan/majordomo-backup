@@ -42,8 +42,8 @@ class FtpBackup implements IProvider
             case "Windows_NT" :
                 $split = preg_split("[ ]", $current, 9, PREG_SPLIT_NO_EMPTY);
                 if ($split[0] != "total") {
-                    if ($split[0]{0} === "d") continue;
-                    if (!strpos($split[3],$pattern)) continue;
+                    if ($split[0]{0} === "d") continue 2;
+                    if (!strpos($split[3],$pattern)) continue 2;
                     $file = array();
                     $file["NAME"] = $split[3];
                     $time=substr($split[3],15,2).':'.substr($split[3],17,2);
@@ -65,8 +65,8 @@ class FtpBackup implements IProvider
             default:
                 $split = preg_split("[ ]", $current, 9, PREG_SPLIT_NO_EMPTY);
                 if ($split[0] != "total") {
-                    if ($split[0]{0} === "d") continue;
-                    if (!strpos($split[8],$pattern)) continue;
+                    if ($split[0]{0} === "d") continue 2;
+                    if (!strpos($split[8],$pattern)) continue 2;
                     $file = array();
                     $file["NAME"] = $split[8];
                     $time = $split[7];
