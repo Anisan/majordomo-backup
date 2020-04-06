@@ -420,7 +420,7 @@ function create_backup(&$out = false, $iframe = 0) {
         $params=array();
         $params['STATE']=$state;
         $params['DESCRIPTION']=$description;
-        runScriptSafe($this->config['SCRIPT_CREATE_ID'], $params);
+        callAPI('/api/script/' . $this->config['SCRIPT_CREATE_ID'], 'GET', $params);
     }
     if ($state == "Ok")
         return "Ok";
