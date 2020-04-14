@@ -21,8 +21,8 @@ function backup() {
   $this->title="Backup";
   $this->module_category="<#LANG_SECTION_SYSTEM#>";
   $this->pass="!@#$%^&*";
-  $this->$key = $this->decrypt("UCyfT7qNoupVaviFKvcynQ==");
-  $this->$secret = $this->decrypt("HxKaxrUQeyKAwmdZNUPWYg==");
+  $this->app_key = $this->decrypt("UCyfT7qNoupVaviFKvcynQ==");
+  $this->app_secret = $this->decrypt("HxKaxrUQeyKAwmdZNUPWYg==");
   $this->checkInstalled();
 }
 /**
@@ -747,7 +747,7 @@ function getProvider() {
             case 5: // Dropbox
                 $this->log("Provider - Dropbox");
                 require_once(ROOT . "modules/backup/provider/Dropbox.php");
-                $provider = new DropboxBackup($this->$key, $this->$secret, $this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
+                $provider = new DropboxBackup($this->app_key, $this->app_secret, $this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
                 break;
     }
     return $provider;

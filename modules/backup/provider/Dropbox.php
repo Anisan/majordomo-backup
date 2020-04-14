@@ -9,11 +9,11 @@ class DropboxBackup implements IProvider
     private $dropbox;
     public $supportUpload = 1;
     
-    function __construct($key, $secret, $account, $token, $logger)
+    function __construct($app_key, $app_secret, $account, $token, $logger)
     {
         $this->dropbox = new DropboxClient( array(
-            'app_key'         => $key,
-            'app_secret'      => $secret,
+            'app_key'         => $app_key,
+            'app_secret'      => $app_secret,
             'app_full_access' => false,
         ) );
         $this->logger = $logger;
