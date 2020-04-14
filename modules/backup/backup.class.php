@@ -20,6 +20,9 @@ function backup() {
   $this->name="backup";
   $this->title="Backup";
   $this->module_category="<#LANG_SECTION_SYSTEM#>";
+  $this->pass="!@#$%^&*";
+  $this->$key = $this->decrypt("UCyfT7qNoupVaviFKvcynQ==");
+  $this->$secret = $this->decrypt("HxKaxrUQeyKAwmdZNUPWYg==");
   $this->checkInstalled();
 }
 /**
@@ -744,11 +747,26 @@ function getProvider() {
             case 5: // Dropbox
                 $this->log("Provider - Dropbox");
                 require_once(ROOT . "modules/backup/provider/Dropbox.php");
-                $provider = new DropboxBackup($this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
+                $provider = new DropboxBackup($this->$key, $this->$secret, $this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
                 break;
     }
     return $provider;
 }
+
+function encrypt($text) 
+{ 
+    //return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->pass, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND)))); 
+    return base64_encode(openssl_encrypt($text, 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass));
+    
+} 
+
+function decrypt($text) 
+{ 
+    //return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->pass, base64_decode($text), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))); 
+    return openssl_decrypt(base64_decode($text), 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass);
+} 
+
+
 
 function debug($content) {
     if($this->config['BACKUP_DEBUG'])
