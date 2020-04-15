@@ -20,9 +20,9 @@ function backup() {
   $this->name="backup";
   $this->title="Backup";
   $this->module_category="<#LANG_SECTION_SYSTEM#>";
-  $this->pass="!@#$%^&*";
-  $this->app_key = $this->decrypt("UCyfT7qNoupVaviFKvcynQ==");
-  $this->app_secret = $this->decrypt("HxKaxrUQeyKAwmdZNUPWYg==");
+  $this->pass="!@#$%^&*12345678";
+  $this->app_key = $this->decrypt("Ay+B8Tx2vHPVyby2tXH+Ww==");
+  $this->app_secret = $this->decrypt("x2C0p3QQz0i8nyRDrOOIMw==");
   $this->checkInstalled();
 }
 /**
@@ -755,14 +755,12 @@ function getProvider() {
 
 function encrypt($text) 
 { 
-    //return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->pass, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND)))); 
     return base64_encode(openssl_encrypt($text, 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass));
     
 } 
 
 function decrypt($text) 
 { 
-    //return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->pass, base64_decode($text), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))); 
     return openssl_decrypt(base64_decode($text), 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass);
 } 
 
