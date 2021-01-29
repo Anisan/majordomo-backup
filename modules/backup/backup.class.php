@@ -563,12 +563,13 @@ function backupdatabase($filename)
         else
             $pathToMysqlDump = IsWindowsOS() ? SERVER_ROOT . "/server/mysql/bin/mysqldump" : "/usr/bin/mysqldump";
 
-        exec($pathToMysqlDump . " --user=\"" . DB_USER . "\" --password=\"" . DB_PASSWORD . "\" --lock-tables=false --no-create-db --add-drop-table --ignore-table=".DB_NAME.".cached_values --databases " . DB_NAME . ">" . $filename);
+        exec($pathToMysqlDump . " --host=\"" . DB_HOST . "\" --user=\"" . DB_USER . "\" --password=\"" . DB_PASSWORD . "\" --lock-tables=false --no-create-db --add-drop-table --ignore-table=".DB_NAME.".cached_values --databases " . DB_NAME . ">" . $filename);
     }
  function restoredatabase($filename)
     {
         $mysql_path = (substr(php_uname(), 0, 7) == "Windows") ? SERVER_ROOT . "/server/mysql/bin/mysql" : 'mysql';
-        $mysqlParam = " -u " . DB_USER;
+        $mysqlParam = " -H " . DB_HOST;
+        $mysqlParam .= " -u " . DB_USER;
         if (DB_PASSWORD != '') $mysqlParam .= " -p" . DB_PASSWORD;
         $mysqlParam .= " " . DB_NAME . " <" . $filename;
         exec($mysql_path . $mysqlParam);
