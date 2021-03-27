@@ -568,7 +568,7 @@ function backupdatabase($filename)
  function restoredatabase($filename)
     {
         $mysql_path = (substr(php_uname(), 0, 7) == "Windows") ? SERVER_ROOT . "/server/mysql/bin/mysql" : 'mysql';
-        $mysqlParam = " -H " . DB_HOST;
+        $mysqlParam = " -h " . DB_HOST;
         $mysqlParam .= " -u " . DB_USER;
         if (DB_PASSWORD != '') $mysqlParam .= " -p" . DB_PASSWORD;
         $mysqlParam .= " " . DB_NAME . " <" . $filename;
