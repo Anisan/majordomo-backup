@@ -175,6 +175,12 @@ function admin(&$out) {
         $this->saveConfig();
         $this->redirect("?");
     }
+    if($this->mode == 'download_backup') {
+        $this->download_backup(gr('backup'));
+    }
+    if($this->mode == 'view_backup') {
+        $this->view_backup(gr('backup'), $out);
+    }
     if($this->mode == 'delete_backup') {
         global $name;
         $this->delete_backup($name);
@@ -266,10 +272,67 @@ function get_backups(&$out) {
     $out["RESTORE"] = $provider->supportUpload;
 }
  
-function delete_backup($name) {
+function backupArchiveName($name) {
+  $name = basename((string)$name);
+  if (!preg_match('/^backup_\d{14}\.(tar|tgz|tar\.gz)$/', $name)) return '';
+  return $name;
+ }
+
+ function tempArchivePath($name) {
+  $dir = ROOT . 'cms/cached';
+  if (!is_dir($dir)) @mkdir($dir, 0755, true);
+  return $dir . '/backup_' . md5($name) . '.' . pathinfo($name, PATHINFO_EXTENSION);
+ }
+
+ function download_backup($name) {
+  $name = $this->backupArchiveName($name);
+  if ($name == '') return false;
   $provider = $this->getProvider();
-  $provider->deleteBackup($name);  
- } 
+  $file = $this->tempArchivePath($name);
+  $provider->downloadBackup($name, $file);
+  if (!is_file($file) || filesize($file) == 0) {
+   if (is_file($file)) @unlink($file);
+   return false;
+  }
+  header('Content-Type: application/octet-stream');
+  header('Content-Disposition: attachment; filename="' . $name . '"');
+  header('Content-Length: ' . filesize($file));
+  header('Cache-Control: no-store');
+  readfile($file);
+  @unlink($file);
+  exit;
+ }
+
+ function view_backup($name, &$out) {
+  $name = $this->backupArchiveName($name);
+  if ($name == '') return;
+  $provider = $this->getProvider();
+  $file = $this->tempArchivePath($name);
+  $provider->downloadBackup($name, $file);
+  if (!is_file($file) || filesize($file) == 0) {
+   $out['VIEW_ERROR'] = 'Cannot download archive';
+   if (is_file($file)) @unlink($file);
+   return;
+  }
+  $out['VIEW_BACKUP'] = $name;
+  $out['VIEW_SIZE'] = $this->format_filesize(filesize($file));
+  $flag = strpos($name, '.tar.gz') !== false ? '-tzf' : '-tf';
+  $cmd = (IsWindowsOS() ? 'tar.exe' : 'tar') . ' ' . $flag . ' ' . escapeshellarg($file);
+  $entries = array();
+  exec($cmd, $entries, $code);
+  foreach (array_slice($entries, 0, 200) as $entry) {
+   $out['VIEW_FILES'][] = array('NAME' => htmlspecialchars($entry));
+  }
+  $out['VIEW_TRUNCATED'] = count($entries) > 200 ? 1 : 0;
+  @unlink($file);
+ }
+
+ function delete_backup($name) {
+  $name = $this->backupArchiveName($name);
+  if ($name == '') return;
+  $provider = $this->getProvider();
+  $provider->deleteBackup($name);
+ }
 
 function create_backup(&$out = false, $iframe = 0) {
     $state = "Unknow";

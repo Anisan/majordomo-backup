@@ -15,6 +15,8 @@ $dictionary=array(
 'BAK_CREATE' => 'Создать резервную копию',
 'BAK_FREESPACE' => 'Свободно',
 'BAK_DOWNLOAD' => 'Скачать',
+'BAK_VIEW' => 'Просмотр',
+'BAK_BACK_TO_LIST' => 'К списку',
 //storage
 'BAK_PROVIDER' => 'Хранилище',
 'BAK_LOCAL_PATH' => 'Локальная папка',
