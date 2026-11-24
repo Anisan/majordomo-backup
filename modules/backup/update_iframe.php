@@ -14,6 +14,13 @@ $db = new mysql(DB_HOST, '', DB_USER, DB_PASSWORD, DB_NAME);
 include_once("./load_settings.php");
 include_once(DIR_MODULES . "backup/backup.class.php");
 
+$session = new session("prj");
+if (empty($session->data['AUTHORIZED'])) {
+    echo 'Access denied';
+    $db->Disconnect();
+    exit;
+}
+
 $sv=new backup();
 
 echo "<html>";

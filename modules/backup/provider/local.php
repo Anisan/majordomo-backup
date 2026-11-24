@@ -43,9 +43,9 @@ class LocalBackup implements IProvider
     
     public function deleteBackup($backup)
     {
-        $filename = $this->path ."/". $backup;
-        echo $filename;
-        unlink($filename);
+        $backup = basename($backup);
+        $filename = rtrim($this->path, '/\\') . DIRECTORY_SEPARATOR . $backup;
+        @unlink($filename);
     }
     
     public function downloadBackup($backup, $file)
