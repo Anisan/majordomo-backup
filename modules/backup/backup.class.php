@@ -20,9 +20,9 @@ function backup() {
   $this->name="backup";
   $this->title="Backup";
   $this->module_category="<#LANG_SECTION_SYSTEM#>";
-  $this->pass="!@#$%^&*12345678";
-  $this->app_key = $this->decrypt("Ay+B8Tx2vHPVyby2tXH+Ww==");
-  $this->app_secret = $this->decrypt("x2C0p3QQz0i8nyRDrOOIMw==");
+  $this->getConfig();
+  $this->app_key = isset($this->config['DROPBOX_APP_KEY']) ? $this->config['DROPBOX_APP_KEY'] : '';
+  $this->app_secret = isset($this->config['DROPBOX_APP_SECRET']) ? $this->config['DROPBOX_APP_SECRET'] : '';
   $this->checkInstalled();
 }
 /**
@@ -126,6 +126,11 @@ function admin(&$out) {
         $this->config['BACKUP_DEBUG'] = $backup_debug;
         global $provider;
         $this->config['PROVIDER'] = $provider;
+        global $dropbox_app_key, $dropbox_app_secret;
+        $this->config['DROPBOX_APP_KEY'] = trim($dropbox_app_key);
+        $this->config['DROPBOX_APP_SECRET'] = trim($dropbox_app_secret);
+        $this->app_key = $this->config['DROPBOX_APP_KEY'];
+        $this->app_secret = $this->config['DROPBOX_APP_SECRET'];
         global $local_path;
         $this->config['LOCAL_PATH'] = $local_path; 
         global $webdav_path;
@@ -190,6 +195,8 @@ function admin(&$out) {
     if($this->view_mode == '') {
         $out['BACKUP_DEBUG'] = $this->config['BACKUP_DEBUG']; 
         $out['PROVIDER'] = $this->config['PROVIDER']; 
+        $out['DROPBOX_APP_KEY'] = $this->config['DROPBOX_APP_KEY'];
+        $out['DROPBOX_APP_SECRET'] = $this->config['DROPBOX_APP_SECRET'];
         $out['LOCAL_PATH'] = $this->config['LOCAL_PATH'];
         $out['WEBDAV_PATH'] = $this->config['WEBDAV_PATH'];
         $out['WEBDAV_URL'] = $this->config['WEBDAV_URL'];
@@ -753,19 +760,6 @@ function getProvider() {
     }
     return $provider;
 }
-
-function encrypt($text) 
-{ 
-    return base64_encode(openssl_encrypt($text, 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass));
-    
-} 
-
-function decrypt($text) 
-{ 
-    return openssl_decrypt(base64_decode($text), 'aes-128-cbc', $this->pass, OPENSSL_RAW_DATA, $this->pass);
-} 
-
-
 
 function debug($content) {
     if($this->config['BACKUP_DEBUG'])

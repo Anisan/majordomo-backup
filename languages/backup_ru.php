@@ -1,6 +1,6 @@
 <?php
 /**
-* Default language file for Telegram module
+* Russian language file for Backup module
 *
 */
 $dictionary=array(
