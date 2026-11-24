@@ -161,6 +161,20 @@ function admin(&$out) {
             $this->config['DROPBOX_ACCOUNT']=$token['account_id'];
         }
         
+        global $gdrive_client_id, $gdrive_client_secret, $gdrive_refresh_token, $gdrive_folder;
+        $this->config['GDRIVE_CLIENT_ID'] = $gdrive_client_id;
+        $this->config['GDRIVE_CLIENT_SECRET'] = $gdrive_client_secret;
+        $this->config['GDRIVE_REFRESH_TOKEN'] = $gdrive_refresh_token;
+        $this->config['GDRIVE_FOLDER'] = $gdrive_folder;
+
+        global $s3_endpoint, $s3_bucket, $s3_region, $s3_key, $s3_secret, $s3_path;
+        $this->config['S3_ENDPOINT'] = $s3_endpoint;
+        $this->config['S3_BUCKET'] = $s3_bucket;
+        $this->config['S3_REGION'] = $s3_region;
+        $this->config['S3_KEY'] = $s3_key;
+        $this->config['S3_SECRET'] = $s3_secret;
+        $this->config['S3_PATH'] = $s3_path;
+
         global $max_count;
         $this->config['MAX_COUNT'] = $max_count; 
         global $temp_backup_folder;
@@ -208,7 +222,18 @@ function admin(&$out) {
         $out['TEMP_BACKUP_FOLDER'] = $this->config['TEMP_BACKUP_FOLDER'];
         $out['BACKUP_DATABASE'] = $this->config['BACKUP_DATABASE'];
         $out['BACKUP_DIRS'] = $this->config['BACKUP_DIRS'];
-        
+
+        $out['GDRIVE_CLIENT_ID'] = $this->config['GDRIVE_CLIENT_ID'];
+        $out['GDRIVE_CLIENT_SECRET'] = $this->config['GDRIVE_CLIENT_SECRET'];
+        $out['GDRIVE_REFRESH_TOKEN'] = $this->config['GDRIVE_REFRESH_TOKEN'];
+        $out['GDRIVE_FOLDER'] = $this->config['GDRIVE_FOLDER'];
+        $out['S3_ENDPOINT'] = $this->config['S3_ENDPOINT'];
+        $out['S3_BUCKET'] = $this->config['S3_BUCKET'];
+        $out['S3_REGION'] = $this->config['S3_REGION'];
+        $out['S3_KEY'] = $this->config['S3_KEY'];
+        $out['S3_SECRET'] = $this->config['S3_SECRET'];
+        $out['S3_PATH'] = $this->config['S3_PATH'];
+
         if ($this->config['PROVIDER'] == 5 && $this->config['DROPBOX_TOKEN']!="")
         {
             $dp = $this->getProvider();
@@ -730,10 +755,17 @@ function getProvider() {
                 require_once(ROOT . "modules/backup/provider/webdav.php");
                 $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH'],$this);
                 break;
-            case 2: // GDrive
-                $this->log("Provider - GdriveBackup");
+            case 2: // Google Drive (legacy provider id)
+            case 6: // Google Drive
+                $this->log("Provider - GoogleDriveBackup");
                 require_once(ROOT . "modules/backup/provider/gdrive.php");
-                $provider = new GdriveBackup();
+                $provider = new GoogleDriveBackup(
+                    $this->config['GDRIVE_CLIENT_ID'],
+                    $this->config['GDRIVE_CLIENT_SECRET'],
+                    $this->config['GDRIVE_REFRESH_TOKEN'],
+                    $this->config['GDRIVE_FOLDER'],
+                    $this
+                );
                 break;
             case 3: // Cloud Mail.ru
                 $this->log("Provider - MailRuBackup");
@@ -749,6 +781,19 @@ function getProvider() {
                 $this->log("Provider - Dropbox");
                 require_once(ROOT . "modules/backup/provider/Dropbox.php");
                 $provider = new DropboxBackup($this->app_key, $this->app_secret, $this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
+                break;
+            case 7: // Amazon S3 / S3-compatible
+                $this->log("Provider - AmazonS3Backup");
+                require_once(ROOT . "modules/backup/provider/s3.php");
+                $provider = new AmazonS3Backup(
+                    $this->config['S3_ENDPOINT'],
+                    $this->config['S3_BUCKET'],
+                    $this->config['S3_REGION'],
+                    $this->config['S3_KEY'],
+                    $this->config['S3_SECRET'],
+                    $this->config['S3_PATH'],
+                    $this
+                );
                 break;
     }
     return $provider;
