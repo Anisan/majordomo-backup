@@ -24,12 +24,16 @@
 		var fDiv3 = document.getElementById('set_mailru');
 		var fDiv4 = document.getElementById('set_ftp');
 		var fDiv5 = document.getElementById('set_dropbox');
+		var fDiv6 = document.getElementById('set_gdrive');
+		var fDiv7 = document.getElementById('set_s3');
 		fDiv0.style.display = (select.value == 0) ? 'block' : 'none';
 		fDiv1.style.display = (select.value == 1) ? 'block' : 'none';
-		fDiv2.style.display = (select.value == 2) ? 'block' : 'none';
+		fDiv2.style.display = (select.value == 2 || select.value == 6) ? 'block' : 'none';
 		fDiv3.style.display = (select.value == 3) ? 'block' : 'none';
 		fDiv4.style.display = (select.value == 4) ? 'block' : 'none';
 		fDiv5.style.display = (select.value == 5) ? 'block' : 'none';
+		fDiv6.style.display = (select.value == 2 || select.value == 6) ? 'block' : 'none';
+		fDiv7.style.display = (select.value == 7) ? 'block' : 'none';
 	}
 </script> 
 
@@ -60,6 +64,8 @@
 					<option data-content="<img src='../templates/backup/img/CloudMailRu.png' width='20' height='20'> Cloud Mail.ru" value="3"[#if PROVIDER=="3"#] selected[#endif#]>Cloud Mail.ru</option>
 					<option data-content="<img src='../templates/backup/img/ftp.jpg' width='20' height='20'> FTP" value="4"[#if PROVIDER=="4"#] selected[#endif#]>FTP</option>
 					<option data-content="<img src='../templates/backup/img/Dropbox.png' width='20' height='20'> Dropbox" value="5"[#if PROVIDER=="5"#] selected[#endif#]>Dropbox</option>
+					<option data-content="<span class='glyphicon glyphicon-cloud'></span> Google Drive" value="6"[#if PROVIDER=="6"#] selected[#endif#]>Google Drive</option>
+					<option data-content="<span class='glyphicon glyphicon-globe'></span> Amazon S3" value="7"[#if PROVIDER=="7"#] selected[#endif#]>Amazon S3</option>
 				</select>
 			</div>
 		</div>
@@ -89,7 +95,46 @@
 		</div>
 		<div id="set_gdrive">
 			<div class="form-group">
-				<label class="control-label">Coming soon...</label>
+				<label class="control-label">Google Drive Client ID:</label>
+				<div class="col-lg-7"><input type="text" name="gdrive_client_id" value="<#GDRIVE_CLIENT_ID#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Google Drive Client Secret:</label>
+				<div class="col-lg-7"><input type="text" name="gdrive_client_secret" value="<#GDRIVE_CLIENT_SECRET#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Google Drive Refresh Token:</label>
+				<div class="col-lg-7"><input type="text" name="gdrive_refresh_token" value="<#GDRIVE_REFRESH_TOKEN#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label"><#LANG_BAK_PATH#> Google Drive:</label>
+				<div class="col-lg-7"><input type="text" name="gdrive_folder" value="<#GDRIVE_FOLDER#>" class="form-control" placeholder="root"></div>
+			</div>
+		</div>
+		<div id="set_s3">
+			<div class="form-group">
+				<label class="control-label">S3 Endpoint:</label>
+				<div class="col-lg-7"><input type="text" name="s3_endpoint" value="<#S3_ENDPOINT#>" class="form-control" placeholder="s3.us-east-1.amazonaws.com"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">S3 Bucket:</label>
+				<div class="col-lg-7"><input type="text" name="s3_bucket" value="<#S3_BUCKET#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">S3 Region:</label>
+				<div class="col-lg-7"><input type="text" name="s3_region" value="<#S3_REGION#>" class="form-control" placeholder="us-east-1"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">S3 Access Key:</label>
+				<div class="col-lg-7"><input type="text" name="s3_key" value="<#S3_KEY#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">S3 Secret Key:</label>
+				<div class="col-lg-7"><input type="text" name="s3_secret" value="<#S3_SECRET#>" class="form-control"></div>
+			</div>
+			<div class="form-group">
+				<label class="control-label"><#LANG_BAK_PATH#> S3:</label>
+				<div class="col-lg-7"><input type="text" name="s3_path" value="<#S3_PATH#>" class="form-control"></div>
 			</div>
 		</div>
 		<div id="set_mailru">
