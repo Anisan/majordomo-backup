@@ -234,9 +234,10 @@ function admin(&$out) {
 }
 
 function format_filesize($bytes, $decimals = 2) {
-  $sz = ' KMGTP';
-  $factor = floor((strlen($bytes) - 1) / 3);
-  return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) ." ". @$sz[$factor]."b";
+  $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+  $bytes = (float)$bytes;
+  $factor = $bytes > 0 ? min(floor(log($bytes, 1024)), count($units) - 1) : 0;
+  return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . ' ' . $units[$factor];
 }
 
 function get_backups(&$out) {
@@ -251,10 +252,11 @@ function get_backups(&$out) {
     $this->debug($backups);
     if ($backups)
     {
+        // Newest backup first in the list.
         usort($backups, function($a1, $a2) {
                     $v1 = strtotime($a1['CREATED']);
                     $v2 = strtotime($a2['CREATED']);
-                    return $v1 - $v2; // $v2 - $v1 to reverse direction
+                    return $v2 - $v1;
                 });
         foreach($backups as $backup) {
             $backup['SIZE'] = $this->format_filesize($backup['SIZE']);
