@@ -25,6 +25,13 @@ function backup() {
   $this->app_secret = $this->decrypt("x2C0p3QQz0i8nyRDrOOIMw==");
   $this->checkInstalled();
 }
+
+/**
+ * PHP 8 no longer treats a method named like the class as a constructor.
+ */
+function __construct() {
+  $this->backup();
+}
 /**
 * saveParams
 *
@@ -177,7 +184,7 @@ function admin(&$out) {
     }
     if($this->mode == 'delete_backup') {
         global $name;
-        $this->delete_backup($name);
+        $this->delete_backup($this->safeBackupName($name));
         $this->redirect("?");
     }
     if($this->mode == 'connection_delete') {
@@ -266,10 +273,20 @@ function get_backups(&$out) {
     $out["RESTORE"] = $provider->supportUpload;
 }
  
-function delete_backup($name) {
+function safeBackupName($name) {
+  $name = basename((string)$name);
+  if (!preg_match('/^backup_\d{14}\.(tar|tgz|tar\.gz)$/', $name)) {
+    return '';
+  }
+  return $name;
+ }
+
+ function delete_backup($name) {
+  $name = $this->safeBackupName($name);
+  if ($name == '') return;
   $provider = $this->getProvider();
-  $provider->deleteBackup($name);  
- } 
+  $provider->deleteBackup($name);
+ }
 
 function create_backup(&$out = false, $iframe = 0) {
     $state = "Unknow";
@@ -337,18 +354,15 @@ function create_backup(&$out = false, $iframe = 0) {
             
             if ($iframe) $this->echonow("Packing $file ... ");
             $this->log("Packing $file");
-            if (IsWindowsOS()) {
-                $cmd = 'tar.exe --strip-components=2 -C '.$backup_dir_temp.' -cvf ' . $file . ' ./';
-                $this->log($cmd);
-                $result = exec($cmd);
-                $new_name = str_replace('.tar', '.tar.gz', $file);
-                $result = exec('gzip.exe ' . $file);
-                if (file_exists($new_name)) {
-                    $file = $new_name;
-                }
-            } else {
-                chdir($backup_dir_temp);
-                exec('tar cvzf ' . $file . ' .');
+            // bsdtar (Windows 10+) and GNU tar both support -C and -czf.
+            // Use -C so the rest of the request keeps its working directory.
+            $cmd = (IsWindowsOS() ? 'tar.exe' : 'tar') . ' -czf ' . escapeshellarg($file)
+                . ' -C ' . escapeshellarg($backup_dir_temp) . ' .';
+            $this->log($cmd);
+            exec($cmd, $output, $result);
+            $new_name = str_replace('.tar', '.tar.gz', $file);
+            if (file_exists($new_name)) {
+                $file = $new_name;
             }
             if (file_exists($file)) {
                 if ($iframe) $this->echonow(" OK<br/>", 'green');
@@ -361,7 +375,7 @@ function create_backup(&$out = false, $iframe = 0) {
                 
                 $this->log("Save to storage");
                 if ($iframe) $this->echonow("Save to storage ... ");
-                $backupName .= "backup_" . date("YmdHis");
+                $backupName = "backup_" . date("YmdHis");
                 $backupName .= IsWindowsOS() ? '.tar' : '.tgz';
                 $provider = $this->getProvider();
                 $provider->uploadBackup($file,$backupName);
@@ -432,6 +446,11 @@ function create_backup(&$out = false, $iframe = 0) {
 function restore_backup($backup, &$out = false, $iframe = 0) {
     $state = "Unknow";
     $description = "";
+    $backup = $this->safeBackupName($backup);
+    if ($backup == '') {
+        if ($iframe) $this->echonow("Invalid backup name.<br/>", 'red');
+        return;
+    }
     $this->log("Working on restore");
     if ($iframe) $this->echonow("<b>Working on restore.</b><br/>");
 
@@ -468,20 +487,11 @@ function restore_backup($backup, &$out = false, $iframe = 0) {
             
             if ($iframe) $this->echonow("Unpack file $file ...");
             
-            chdir($backup_dir);
-            if (IsWindowsOS()) {
-                $cmd = ROOT.'gunzip.exe ' . $file;
-                $this->log($cmd);
-                $result = exec($cmd);
-                $this->log($result);
-                $cmd = ROOT.'tar.exe -xf ' . str_replace('.tar.gz', '.tar', $file) . ' -C '.$backup_dir_temp;
-                $this->log($cmd);
-                $result = exec($cmd);
-                $this->log($result);
-            } else {
-                chdir($backup_dir_temp);
-                exec('tar xf ' . $file . ' -C '.$backup_dir_temp);
-            }
+            // Use absolute paths and -C; never change the process working directory.
+            $cmd = (IsWindowsOS() ? 'tar.exe' : 'tar') . ' -xf ' . escapeshellarg($file)
+                . ' -C ' . escapeshellarg($backup_dir_temp);
+            $this->log($cmd);
+            exec($cmd, $output, $result);
             if ($iframe) $this->echonow(" OK<br/>", 'green');
             
             unlink($file);
@@ -563,16 +573,23 @@ function backupdatabase($filename)
         else
             $pathToMysqlDump = IsWindowsOS() ? SERVER_ROOT . "/server/mysql/bin/mysqldump" : "/usr/bin/mysqldump";
 
-        exec($pathToMysqlDump . " --host=\"" . DB_HOST . "\" --user=\"" . DB_USER . "\" --password=\"" . DB_PASSWORD . "\" --lock-tables=false --no-create-db --add-drop-table --ignore-table=".DB_NAME.".cached_values --databases " . DB_NAME . ">" . $filename);
+        $cmd = escapeshellarg($pathToMysqlDump)
+            . " --host=" . escapeshellarg(DB_HOST)
+            . " --user=" . escapeshellarg(DB_USER)
+            . " --password=" . escapeshellarg(DB_PASSWORD)
+            . " --lock-tables=false --no-create-db --add-drop-table"
+            . " --ignore-table=" . escapeshellarg(DB_NAME . '.cached_values')
+            . " --databases " . escapeshellarg(DB_NAME)
+            . " > " . escapeshellarg($filename);
+        exec($cmd, $output, $result);
     }
  function restoredatabase($filename)
     {
         $mysql_path = (substr(php_uname(), 0, 7) == "Windows") ? SERVER_ROOT . "/server/mysql/bin/mysql" : 'mysql';
-        $mysqlParam = " -h " . DB_HOST;
-        $mysqlParam .= " -u " . DB_USER;
-        if (DB_PASSWORD != '') $mysqlParam .= " -p" . DB_PASSWORD;
-        $mysqlParam .= " " . DB_NAME . " <" . $filename;
-        exec($mysql_path . $mysqlParam);
+        $mysqlParam = " -h " . escapeshellarg(DB_HOST) . " -u " . escapeshellarg(DB_USER);
+        if (DB_PASSWORD != '') $mysqlParam .= " --password=" . escapeshellarg(DB_PASSWORD);
+        $mysqlParam .= " " . escapeshellarg(DB_NAME) . " < " . escapeshellarg($filename);
+        exec(escapeshellarg($mysql_path) . $mysqlParam, $output, $result);
         SQLExec("DELETE FROM cached_values");
         setGlobal('cycle_mainRun',time());
     }
@@ -719,7 +736,8 @@ function usual(&$out) {
 
 function getProvider() {
     $this->getConfig();
-    switch ($this->config['PROVIDER']) {
+    $provider = null;
+    switch ((int)$this->config['PROVIDER']) {
             case 0: // local
                 $this->log("Provider - LocalBackup");
                 require_once(ROOT . "modules/backup/provider/local.php");
@@ -730,10 +748,8 @@ function getProvider() {
                 require_once(ROOT . "modules/backup/provider/webdav.php");
                 $provider = new WebDavBackup($this->config['WEBDAV_URL'],$this->config['WEBDAV_LOGIN'],$this->config['WEBDAV_PASSWORD'],$this->config['WEBDAV_PATH'],$this);
                 break;
-            case 2: // GDrive
-                $this->log("Provider - GdriveBackup");
-                require_once(ROOT . "modules/backup/provider/gdrive.php");
-                $provider = new GdriveBackup();
+            case 2: // GDrive (legacy setting; provider file is not shipped)
+                $this->log("GDrive provider is not available, falling back to local storage");
                 break;
             case 3: // Cloud Mail.ru
                 $this->log("Provider - MailRuBackup");
@@ -750,6 +766,20 @@ function getProvider() {
                 require_once(ROOT . "modules/backup/provider/Dropbox.php");
                 $provider = new DropboxBackup($this->app_key, $this->app_secret, $this->config['DROPBOX_ACCOUNT'],$this->config['DROPBOX_TOKEN'],$this);
                 break;
+            default:
+                $this->log("Unknown provider " . $this->config['PROVIDER'] . ", using local storage");
+                break;
+    }
+    if (!$provider) {
+        require_once(ROOT . "modules/backup/provider/local.php");
+        $path = $this->config['LOCAL_PATH'];
+        if ($path == '') {
+            $path = ROOT . 'cms/backup/';
+        }
+        if (!is_dir($path)) {
+            @mkdir($path, 0755, true);
+        }
+        $provider = new LocalBackup($path, $this);
     }
     return $provider;
 }
