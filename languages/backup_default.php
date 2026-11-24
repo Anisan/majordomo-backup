@@ -15,6 +15,8 @@ $dictionary=array(
 'BAK_CREATE' => 'Create Backup',
 'BAK_FREESPACE' => 'Free space',
 'BAK_DOWNLOAD' => 'Download',
+'BAK_VIEW' => 'View',
+'BAK_BACK_TO_LIST' => 'Back to list',
 //storage
 'BAK_PROVIDER' => 'Provider',
 'BAK_LOCAL_PATH' => 'Local path',

@@ -267,6 +267,22 @@
     </div>
 	<div id="panel_backups" class="tab-pane fade in">
 		<br>
+		[#if VIEW_BACKUP!=""#]
+		<div class="panel panel-default">
+			<div class="panel-heading"><#LANG_BAK_VIEW#>: <#VIEW_BACKUP#> (<#VIEW_SIZE#>)</div>
+			<div class="panel-body" style="max-height:420px;overflow:auto">
+				[#if VIEW_ERROR!=""#]<div class="alert alert-danger"><#VIEW_ERROR#></div>[#endif#]
+				<table class="table table-striped table-condensed">
+				[#begin VIEW_FILES#]<tr><td><small>[#NAME#]</small></td></tr>[#end VIEW_FILES#]
+				</table>
+				[#if VIEW_TRUNCATED#]<p class="help-block">...</p>[#endif#]
+			</div>
+			<div class="panel-footer">
+				<a href="?mode=download_backup&backup=<#VIEW_BACKUP#>" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt"></span> <#LANG_BAK_DOWNLOAD#></a>
+				<a href="?" class="btn btn-default"><#LANG_BAK_BACK_TO_LIST#></a>
+			</div>
+		</div>
+		[#endif VIEW_BACKUP#]
 		<p>
 		<a href="?mode=backup_iframe&command=create" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> <#LANG_BAK_CREATE#></a>&nbsp; <#LANG_BAK_FREESPACE#>: <#FREESPACE#>
 		</p> 
@@ -310,11 +326,12 @@
 		 <td style="vertical-align:middle">
 		   [#SIZE#]
 		 </td>
-		[#if URL!=""#]
-			<td valign="top"><a href="[#URL#]" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span> <#LANG_BAK_DOWNLOAD#></a></td> 
-		[#else#]
-			<td colspan="1">&nbsp;</td>
-		[#endif#] 
+		 <td style="vertical-align:middle" width="1%" nowrap>
+		  <div style="width:180px">
+		   <a href="?mode=view_backup&backup=[#NAME#]" class="btn btn-default btn-sm" title="<#LANG_BAK_VIEW#>"><i class="glyphicon glyphicon-eye-open"></i></a>
+		   <a href="?mode=download_backup&backup=[#NAME#]" class="btn btn-default btn-sm" title="<#LANG_BAK_DOWNLOAD#>"><i class="glyphicon glyphicon-download-alt"></i></a>
+		  </div>
+		 </td>
 		 <td style="vertical-align:middle" width="1%" nowrap>
           <div style="width:120px">
 		  [#if "<#ACTION#>"=="admin"#]
